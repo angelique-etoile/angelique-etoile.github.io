@@ -44,8 +44,7 @@ Controller = (function() {
 
   Controller.prototype.setDate = function(offset) {
     this.setCurrent(offset);
-    data.loadSchedules();
-    return plugin.setDate(current);
+    return data.loadSchedules();
   };
 
   Controller.prototype.setCurrent = function(offset) {
@@ -55,7 +54,8 @@ Controller = (function() {
     day1st = new Date(current.year, current.month, 1);
     current.startDay = day1st.getDay();
     current.unixTime1stDay = Math.floor(day1st / 1000 / 60 / 60 / 24);
-    return View.setCalendar(current);
+    View.setCalendar(current);
+    return plugin.setDate(current);
   };
 
   Controller.prototype.getYearMonth = function(monthOffset) {
