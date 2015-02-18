@@ -472,7 +472,7 @@ Model = (function() {
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       cls = _ref[_i];
       if (cls && cls !== "select" && cls.indexOf("select") === 0) {
-        str = cls.replace("selectSchedule", "").toLowerCase().replace(/[0-9]/, "");
+        str = cls.replace("selectSchedule", "").toLowerCase().replace(/\d.+/, "");
         query = [];
         query[0] = this.getSchedules(View.getId(elem));
         query[0][str] = parseInt(elem.selectedIndex + 1);
