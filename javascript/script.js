@@ -473,7 +473,6 @@ Model = (function() {
       cls = _ref[_i];
       if (cls && cls !== "select" && cls.indexOf("select") === 0) {
         str = cls.replace("selectSchedule", "").toLowerCase().replace(/\d+/, "");
-        console.log(str);
         query = [];
         query[0] = this.getSchedules(View.getId(elem));
         query[0][str] = parseInt(elem.selectedIndex + 1);
