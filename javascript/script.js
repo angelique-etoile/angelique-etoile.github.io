@@ -1079,7 +1079,10 @@ PropertySetting = (function() {
   }
 
   PropertySetting.prototype.init = function(d) {
-    return data = d;
+    data = d;
+    return window.addEventListener("click", function(evt) {
+      return PropertySetting.clickEvent(evt);
+    });
   };
 
   PropertySetting.prototype.setProperties = function() {
@@ -1158,120 +1161,56 @@ PropertySetting = (function() {
     return _results;
   };
 
-  PropertySetting.prototype.mouse = {
-    dragDown: function(evt) {
-      var point;
-      dragging = [];
-      dragging.startX = evt.pageX;
-      dragging.startY = evt.pageY;
-      dragging.moveX = 0;
-      dragging.moveY = 0;
-      point = Controller.getPointer(evt);
-      if (point.classList.contains("windowBar")) {
-        dragging.elem = point.parentNode;
-      } else if (point.classList.contains("colorPickerCell")) {
-        dragging.elem = point.cloneNode(true);
-        point.parentNode.appendChild(dragging);
-        dragging.elem.style.position = "fixed";
-        dragging.elem.style.top = evt.pageY + "px";
-        dragging.elem.style.left = evt.pageX + "px";
-      }
-      if (dragging.elem) {
-        dragging.offsetX = evt.pageX - dragging.offsetLeft;
-        return dragging.offsetY = evt.pageY - dragging.offsetTop;
-      }
-    },
-    dragMove: function(evt) {
-      if (dragging.elem) {
-        dragging.elem.style.left = evt.pageX - dragging.offsetX + "px";
-        dragging.elem.style.top = evt.pageY - dragging.offsetY + "px";
-        if (window.navigator.userAgent.toLowerCase().indexOf("firefox")) {
-          window.getSelection().removeAllRanges();
-        }
-        return evt.returnValue = false;
-      }
-    },
-    dragUp: function(evt) {
-      var elem, from, point, tmpColor, tmpTgt, to, _i, _len, _ref, _results;
-      point = Controller.getPointer(evt);
-      if (dragging.elem) {
-        from = dragging.elem.parentNode;
-        if (dragging.elem.classList.contains("colorPickerCell")) {
-          tmpColor = dragging.style.backgroundColor;
-          dragging.elem.parentNode.removeChild(dragging.elem);
-          dragging.elem = null;
-          to = document.elementFromPoint(evt.pageX, evt.pageY);
-          if (to.classList.contains("colorPickerCell")) {
-            tmpTgt = from.parentNode.parentNode.classList[0];
-            tmpTgt = tmpTgt.replace("colorPicker", "").toLowerCase();
-            _ref = document.querySelectorAll(tmpTgt);
-            _results = [];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              elem = _ref[_i];
-              _results.push(elem.style.color = tmpColor);
-            }
-            return _results;
-          } else {
-            while (!((to.nodeName === "BODY") || (to.style.backgroundColor !== void 0) || (to.style.background !== void 0))) {
-              to = to.parentNode;
-            }
-            return to.style.backgroundColor = tmpColor;
-          }
-        } else {
-          return dragging.elem = null;
+  PropertySetting.clickEvent = function(evt) {
+    var cls, elements, i, num, point, schedule, status, str, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _results, _results1;
+    if (point = MouseEvent.getPointer(evt, ".check")) {
+      _ref = point.classList;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        cls = _ref[_i];
+        if (cls && cls.indexOf("check") === 0 && cls !== "check") {
+          str = cls.replace("check", "");
+          str = str.charAt(0).toLowerCase() + str.substr(1);
+          elements = Dom.get(document.body, "." + str);
+          status = str.replace("schedule", "").replace(/[0-9]/, "").toLowerCase();
         }
       }
-    },
-    clickEvent: function(evt) {
-      var cls, elements, i, num, point, schedule, status, str, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _results;
-      point = Controller.getPointer(evt);
+      num = str.replace(/[A-Za-z]+/, "");
       _results = [];
-      while (!((point.nodeName === "BODY") || (point.nodeName === "SECTION"))) {
-        if (point.classList.contains("check")) {
-          _ref = point.classList;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            cls = _ref[_i];
-            if (cls && cls.indexOf("check") === 0 && cls !== "check") {
-              str = cls.replace("check", "");
-              str = str.charAt(0).toLowerCase() + str.substr(1);
-              elements = Dom.get(document.body, "." + str);
-              status = str.replace("schedule", "").replace(/[0-9]/, "").toLowerCase();
-            }
-          }
-          num = str.replace(/[A-Za-z]+/, "");
-          for (i = _j = 0, _len1 = elements.length; _j < _len1; i = ++_j) {
-            schedule = elements[i];
-            if (schedule.value === null) {
-              schedule.value = 0;
-            }
-            if (point.checked) {
-              schedule.value--;
-            } else {
-              schedule.value++;
-            }
-            if (schedule.value <= 0 && schedule.classList.contains("scheduleHidden")) {
-              schedule.classList.remove("scheduleHidden");
-            }
-            if (schedule.value > 0 && !(schedule.classList.contains("scheduleHidden"))) {
-              schedule.classList.add("scheduleHidden");
-            }
-          }
-          break;
-        } else if (point.classList.contains("click")) {
-          _ref1 = point.classList;
-          for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
-            cls = _ref1[_k];
-            if (cls.indexOf("click") === 0 && cls !== "click") {
-              PropertySetting.click[cls.replace("clickPropertySetting", "")](evt);
-              break;
-            }
-          }
-          break;
+      for (i = _j = 0, _len1 = elements.length; _j < _len1; i = ++_j) {
+        schedule = elements[i];
+        if (schedule.value === null) {
+          schedule.value = 0;
+        }
+        if (point.checked) {
+          schedule.value--;
         } else {
-          _results.push(point = point.parentNode);
+          schedule.value++;
+        }
+        if (schedule.value <= 0 && schedule.classList.contains("scheduleHidden")) {
+          schedule.classList.remove("scheduleHidden");
+        }
+        if (schedule.value > 0 && !(schedule.classList.contains("scheduleHidden"))) {
+          _results.push(schedule.classList.add("scheduleHidden"));
+        } else {
+          _results.push(void 0);
         }
       }
       return _results;
+    } else if (point = MouseEvent.getPointer(evt, ".click")) {
+      _ref1 = point.classList;
+      _results1 = [];
+      for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+        cls = _ref1[_k];
+        if (cls.indexOf("click") === 0 && cls !== "click") {
+          PropertySetting.click[cls.replace("clickPropertySetting", "")](evt);
+          break;
+        } else {
+          _results1.push(void 0);
+        }
+      }
+      return _results1;
+    } else {
+
     }
   };
 
@@ -1380,11 +1319,10 @@ PropertySetting = (function() {
     StartDayChange: function(evt) {
       var offsetDay;
       offsetDay = 0;
-      console.log("kjghg");
       if (data.getConfigs().offsetDay) {
         offsetDay = data.getConfigs().offsetDay.value;
       }
-      offsetDay = (++offsetDay) % 7;
+      offsetDay = parseInt((++offsetDay) % 7);
       return data.setConfigs({
         name: "offsetDay",
         value: offsetDay
@@ -1395,7 +1333,7 @@ PropertySetting = (function() {
       if (data.getConfigs().textAlign) {
         textAlign = data.getConfigs().textAlign.value;
       }
-      textAlign = (++textAlign) % align.length;
+      textAlign = parseInt((++textAlign) % align.length);
       return data.setConfigs({
         name: "textAlign",
         value: textAlign
