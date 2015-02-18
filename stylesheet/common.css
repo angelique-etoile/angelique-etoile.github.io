@@ -1,0 +1,491 @@
+.scheduleStatus3:not(option) {
+  opacity: 0.35;
+}
+.addChild {
+  position: absolute;
+  display: block;
+  background-color: #ffb;
+  padding: 0.5em;
+}
+.addChild:hover {
+  background-color: #f00;
+  box-shadow: 0 0 1em #ff0;
+}
+html,
+body {
+  height: 100%;
+  line-height: 1.4em;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  font-size: 11px;
+  color: #863;
+  background-color: #fff;
+}
+body >nav {
+  height: 2em;
+  width: 100%;
+  background: #fff2f8;
+  z-index: 3;
+  line-height: 2em;
+  overflow: hidden;
+  padding: 0 1em;
+}
+body >nav >h1,
+body >nav >button {
+  padding: 0.3em;
+  display: inline;
+  color: inherit;
+}
+body >nav >button {
+  background-color: #ffc0dd;
+  margin: 0.2em 0 0.2em 0.2em;
+  border-radius: 1em;
+  box-shadow: 0 0 0.5em #ffc0dd;
+}
+body >nav >button:nth-of-type(3) {
+  margin-left: 1em;
+}
+body >nav >ul {
+  display: flex;
+  padding: 0.5em 0.7em 1em;
+  overflow: auto;
+}
+body >nav >ul >li {
+  min-width: 10em;
+  max-width: 20em;
+  margin: 1em auto;
+  -webkit-flex: 1 1 1;
+  -moz-flex: 1 1 1;
+  padding: 0.5em 2em;
+}
+body >nav >ul >li:not(:first-of-type) {
+  border-left: dashed 2px #ff67ad;
+}
+body >nav >ul >li >h4 {
+  margin: 0 0 1em -0.5em;
+}
+body >nav >ul >li >input {
+  height: 1em;
+  width: 10em;
+  float: left;
+  box-shadow: 0 0 1em #fff;
+  position: absolute;
+  display: none;
+}
+body >nav >ul >li:first-of-type button {
+  display: inline;
+}
+body >nav >ul >li:nth-of-type(n+2) >button:nth-of-type(2) {
+  clear: left;
+}
+body >nav >ul >li:nth-of-type(n+2) >button:nth-of-type(n+2) {
+  margin-top: 3em;
+}
+body >nav >ul >li:nth-of-type(n+2) >ul>li {
+  position: relative;
+}
+body >nav >ul >li:nth-of-type(n+2) >ul>li >div {
+  display: none;
+  position: relative;
+  float: left;
+}
+body >nav >ul >li:nth-of-type(n+2) >ul>li >div >div {
+  position: absolute;
+  width: 200px;
+}
+body >nav >ul >li:nth-of-type(n+2) >ul>li >div >div >button {
+  float: left;
+}
+body >nav >ul >li:nth-of-type(n+2) >ul>li >label {
+  float: left;
+}
+body >nav >ul >li:nth-of-type(n+2) >ul>li:hover>div {
+  display: block;
+}
+body >nav >ul >li:nth-of-type(n+2) >ul>li:after {
+  content: "";
+  display: block;
+  clear: left;
+}
+body >nav >ul >li >input+button+button,
+body >nav >ul >li >input+button+button+button {
+  display: none;
+  float: left;
+}
+body >nav >ul input,
+body >nav >ul button {
+  padding: 0.4em;
+  border-radius: 0.5em;
+  margin: 0.2em;
+  box-sizing: content-box;
+}
+body >nav >ul button {
+  background: #ffcde4;
+  display: block;
+}
+body >ul {
+  width: 100%;
+  z-index: 2;
+  height: 70%;
+  min-height: 50%;
+  padding-bottom: 2em;
+  padding-top: 1em;
+  position: relative;
+  overflow: auto;
+}
+body >ul.cols4 >li {
+  height: 25%;
+}
+body >ul.cols5 >li {
+  height: 20%;
+}
+body >ul.cols6 >li {
+  height: 16.666666666666668%;
+}
+body >ul >li {
+  float: left;
+  width: 14.285714285714286%;
+  min-height: 7em;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 0 6px -3px #ff7db9 inset;
+}
+body >ul >li:hover {
+  overflow: visible;
+}
+body >ul >li >ul {
+  padding: 0.2em 0.4em 0.1em;
+}
+body >ul >li >section,
+body >ul >li:not(.keep)>section:hover {
+  display: none;
+}
+body >ul >li:hover,
+body >ul >li.keep {
+  background-color: #ffecf5;
+}
+body >ul >li:hover >ul,
+body >ul >li.keep >ul {
+  background: inherit;
+  position: absolute;
+  width: inherit;
+  z-index: 1;
+}
+body >ul >li:hover section,
+body >ul >li.keep section {
+  display: block;
+}
+body >ul >li.keep section {
+  max-height: 50%;
+  z-index: 5;
+}
+body section {
+  position: fixed;
+  min-height: 30%;
+  max-height: 30%;
+  overflow: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  background: #fff2f8;
+  box-shadow: 0 0 0.5em #ffc0dd;
+}
+body section h1 {
+  font-size: 16px;
+  margin-bottom: 0.5em;
+}
+body section ul margin 1em .2em:after {
+  display: block;
+  content: "";
+  clear: both;
+}
+body section ul li {
+  margin: 0.4em 0;
+}
+body >form {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ffecf5;
+  z-index: 4;
+  box-shadow: 0 0 2em 0 #ffcde4;
+}
+body >form textarea,
+body >form input,
+body >form button {
+  padding: 0.3em;
+  border-radius: 0.3em;
+}
+body >form label>dl {
+  margin: 0.5em 0;
+}
+body >form label>dl >dt {
+  width: 6em;
+}
+body >form label>dl >dd {
+  box-flex: 1;
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  padding: 0.3em;
+}
+body >form label:nth-of-type(3)>dl {
+  margin-bottom: 0;
+}
+body >form label:nth-of-type(3)>dl >dt {
+  margin-bottom: 2.5em;
+}
+body >form button {
+  position: absolute;
+  width: 2.75em;
+  bottom: 2em;
+}
+body >form button:nth-of-type(2) {
+  left: 5.25em;
+}
+body >form textarea,
+body >form input {
+  display: block;
+  background-color: #fff9fc;
+  border: none;
+  box-shadow: 0 0 0.3em #ffc0dd inset;
+  width: 100%;
+}
+body >form textarea {
+  height: 5em;
+}
+body section,
+body >form {
+  font-size: 15px;
+  padding: 2em;
+}
+body section button,
+body >form button,
+body section dt,
+body >form dt,
+body section dd,
+body >form dd {
+  border-radius: 0.3em;
+  box-shadow: 0 0 0.2em #ffc0dd;
+  padding: 0 0.2em;
+  margin: 0 0.4em 0 0;
+  line-height: 1.8em;
+  min-height: 1.8em;
+  color: inherit;
+}
+body section button:hover,
+body >form button:hover,
+body section dt:hover,
+body >form dt:hover,
+body section dd:hover,
+body >form dd:hover {
+  background: #ffc0dd;
+}
+body section button,
+body >form button {
+  background-color: #ffc9e2;
+}
+body .scheduleTitle {
+  cursor: pointer;
+}
+body dl {
+  display: box;
+  display: -webkit-box;
+  display: -moz-box;
+  width: 100%;
+}
+body dt,
+body dd {
+  cursor: pointer;
+}
+body dt {
+  background-color: #ffcde4;
+  max-width: 10em;
+}
+body dt.dragging {
+  padding: 0.5em;
+  border-radius: 0.5em;
+}
+body dd {
+  background-color: #ffdcec;
+}
+body section>ul {
+  width: 100%;
+}
+body section>ul >li.dateOverlap>dl>dd:first-of-type {
+  display: block;
+}
+body section>ul >li >dl>dd:first-of-type {
+  background-color: #ffc0dd;
+  display: none;
+}
+body section>ul >li >dl>dd:nth-of-type(2) {
+  box-flex: 1;
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+}
+body section>ul >li >dl>dd select {
+  display: inline;
+  background: transparent;
+  color: inherit;
+  border: none;
+}
+.startDay0:before,
+.startDay1:before,
+.startDay2:before,
+.startDay3:before,
+.startDay4:before,
+.startDay5:before,
+.startDay6:before {
+  display: block;
+  content: "";
+  float: left;
+  height: 1px;
+}
+.startDay0:before {
+  width: 0%;
+}
+.startDay1:before {
+  width: 14.285714285714286%;
+}
+.startDay2:before {
+  width: 28.571428571428573%;
+}
+.startDay3:before {
+  width: 42.85714285714286%;
+}
+.startDay4:before {
+  width: 57.142857142857146%;
+}
+.startDay5:before {
+  width: 71.42857142857143%;
+}
+.startDay6:before {
+  width: 85.71428571428572%;
+}
+.day:not(:nth-of-type(n+8)):before {
+  display: block;
+  position: absolute;
+  top: 0;
+  width: 14.285714285714286%;
+  height: 1em;
+  z-index: -1;
+}
+.day >span:first-child {
+  background-color: #efe;
+}
+.day0 >span:first-child,
+.holiday >span:first-child {
+  background-color: #ffdbf3;
+  color: #e60099;
+}
+.day0 .holidayName,
+.holiday .holidayName {
+  color: #ff14b1;
+}
+.day6 >span:first-child {
+  background-color: #e7f3ff;
+  color: #07e;
+}
+.today {
+  background-color: #ffd;
+}
+.day0:not(:nth-of-type(n+8)):before {
+  content: "日";
+  background-color: #fce;
+}
+.day1:not(:nth-of-type(n+8)):before {
+  content: "月";
+  background-color: #fd9;
+}
+.day2:not(:nth-of-type(n+8)):before {
+  content: "火";
+  background-color: #cfd;
+}
+.day3:not(:nth-of-type(n+8)):before {
+  content: "水";
+  background-color: #edf;
+}
+.day4:not(:nth-of-type(n+8)):before {
+  content: "木";
+  background-color: #fde;
+}
+.day5:not(:nth-of-type(n+8)):before {
+  content: "金";
+  background-color: #ffd;
+}
+.day6:not(:nth-of-type(n+8)):before {
+  content: "土";
+  background-color: #def;
+}
+body>ul>li>span:first-child {
+  line-height: 1;
+  font-size: 1.5em;
+  display: block;
+  font-weight: 900;
+}
+.dragToMonth,
+.dragToNextMonth,
+.dragToPrevMonth {
+  position: fixed;
+  background-color: #ff67ad;
+  border: solid 0.5em #ffdfee;
+  color: #ffdfee;
+  z-index: 4;
+  text-align: center;
+  font-size: 1.2em;
+}
+.dragTo {
+  display: none;
+  z-index: 10000;
+  opacity: 0.5;
+  box-sizing: content-box;
+}
+.dragToMonth {
+  width: 4em;
+  height: 1em;
+  padding: 0.5em 2em;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 5em 5em 0 0/3em 3em 0 0;
+  border-bottom: none;
+  margin: auto;
+}
+.dragToNextMonth,
+.dragToPrevMonth {
+  top: 50%;
+  bottom: 50%;
+  margin: -5em 0;
+  padding: 3.5em 0.25em;
+  width: 2em;
+  height: 1em;
+}
+.dragToNextMonth {
+  border-radius: 3em 0 0 3em/5em 0 0 5em;
+  border-right: none;
+  right: 0;
+}
+.dragToPrevMonth {
+  border-radius: 0 3em 3em 0/0 5em 5em 0;
+  border-left: none;
+  left: 0;
+}
+.dragging {
+  position: fixed;
+  z-index: 10;
+}
+.windowBar {
+  cursor: pointer;
+}
+.scheduleHidden {
+  display: none;
+}
+.dateOverlap {
+  display: none;
+}

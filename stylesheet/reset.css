@@ -1,0 +1,223 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+html h1,
+body h1,
+html h2,
+body h2,
+html h3,
+body h3,
+html h4,
+body h4,
+html h5,
+body h5,
+html h6,
+body h6,
+html p,
+body p,
+html blockquote,
+body blockquote,
+html pre,
+body pre,
+html a,
+body a,
+html abbr,
+body abbr,
+html acronym,
+body acronym,
+html address,
+body address,
+html cite,
+body cite,
+html code,
+body code,
+html del,
+body del,
+html dfn,
+body dfn,
+html em,
+body em,
+html img,
+body img,
+html q,
+body q,
+html s,
+body s,
+html samp,
+body samp,
+html small,
+body small,
+html strike,
+body strike,
+html strong,
+body strong,
+html sub,
+body sub,
+html sup,
+body sup,
+html tt,
+body tt,
+html var,
+body var,
+html dd,
+body dd,
+html dl,
+body dl,
+html dt,
+body dt,
+html li,
+body li,
+html ol,
+body ol,
+html ul,
+body ul,
+html fieldset,
+body fieldset,
+html form,
+body form,
+html label,
+body label,
+html legend,
+body legend,
+html button,
+body button,
+html table,
+body table,
+html caption,
+body caption,
+html tbody,
+body tbody,
+html tfoot,
+body tfoot,
+html thead,
+body thead,
+html tr,
+body tr,
+html th,
+body th,
+html td,
+body td {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 100%;
+  line-height: 1;
+  font-family: inherit;
+}
+html table,
+body table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+html ol,
+body ol,
+html ul,
+body ul {
+  list-style: none;
+}
+html q:before,
+body q:before,
+html q:after,
+body q:after,
+html blockquote:before,
+body blockquote:before,
+html blockquote:after,
+body blockquote:after {
+  content: "";
+}
+html {
+  overflow-y: scroll;
+  font-size: 100%;
+}
+html -webkit-text-size-adjust 100% {
+  -ms-text-size-adjust: 100%;
+}
+a:focus {
+  outline: thin dotted;
+}
+a:hover,
+a:active {
+  outline: 0;
+}
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+nav,
+section {
+  display: block;
+}
+audio,
+canvas,
+video {
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+}
+audio:not([controls]) {
+  display: none;
+}
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+sup {
+  top: -0.5em;
+}
+sub {
+  bottom: -0.25em;
+}
+img {
+  border: 0;
+  -ms-interpolation-mode: bicubic;
+}
+button,
+input,
+select,
+textarea {
+  font-size: 100%;
+  margin: 0;
+  vertical-align: baseline;
+  *vertical-align: middle;
+}
+button,
+input {
+  line-height: normal;
+  *overflow: visible;
+}
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  cursor: pointer;
+  -webkit-appearance: button;
+}
+input[type="search"] {
+  -webkit-appearance: textfield;
+}
+input[type="search"] -webkit-box-sizing content-box -moz-box-sizing content-box {
+  box-sizing: content-box;
+}
+input[type="search"] -webkit-search-decoration {
+  -webkit-appearance: none;
+}
+textarea {
+  overflow: auto;
+  vertical-align: top;
+}
