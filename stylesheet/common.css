@@ -191,6 +191,7 @@ body >ul >li.keep {
 body >ul >li:hover >ul,
 body >ul >li.keep >ul {
   background: inherit;
+  position: absolute;
   width: inherit;
 }
 body >ul >li:hover section,
@@ -324,7 +325,7 @@ body >form {
 body >form textarea,
 body >form input,
 body >form button {
-  padding: 0.3em;
+  padding: 0.1em 0.3em;
   border-radius: 0.3em;
 }
 body >form label>dl {
