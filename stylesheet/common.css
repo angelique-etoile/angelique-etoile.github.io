@@ -11,6 +11,9 @@
   background-color: #f00;
   box-shadow: 0 0 1em #ff0;
 }
+.scheduleTitle {
+  cursor: pointer;
+}
 html,
 body {
   height: 100%;
@@ -32,6 +35,9 @@ body >nav {
   line-height: 2em;
   overflow: hidden;
   padding: 0 1em;
+}
+body >nav:hover {
+  height: auto;
 }
 body >nav >h1,
 body >nav >button {
@@ -126,12 +132,27 @@ body >nav >ul button {
   background: #ffcde4;
   display: block;
 }
+body .startDay0 >li:nth-of-type(n+15):hover >section,
+body .startDay1 >li:nth-of-type(n+21):hover >section,
+body .startDay2 >li:nth-of-type(n+20):hover >section,
+body .startDay3 >li:nth-of-type(n+19):hover >section,
+body .startDay4 >li:nth-of-type(n+18):hover >section,
+body .startDay5 >li:nth-of-type(n+17):hover >section,
+body .startDay6 >li:nth-of-type(n+16):hover >section,
+body .startDay0 >li:nth-of-type(n+15).keep >section,
+body .startDay1 >li:nth-of-type(n+21).keep >section,
+body .startDay2 >li:nth-of-type(n+20).keep >section,
+body .startDay3 >li:nth-of-type(n+19).keep >section,
+body .startDay4 >li:nth-of-type(n+18).keep >section,
+body .startDay5 >li:nth-of-type(n+17).keep >section,
+body .startDay6 >li:nth-of-type(n+16).keep >section {
+  top: 2em;
+  bottom: auto;
+}
 body >ul {
   width: 100%;
-  z-index: 2;
-  height: 70%;
-  min-height: 50%;
-  padding-bottom: 2em;
+  height: 100%;
+  padding-bottom: 3em;
   padding-top: 1em;
   position: relative;
   overflow: auto;
@@ -170,32 +191,115 @@ body >ul >li.keep {
 body >ul >li:hover >ul,
 body >ul >li.keep >ul {
   background: inherit;
-  position: absolute;
   width: inherit;
-  z-index: 1;
 }
 body >ul >li:hover section,
 body >ul >li.keep section {
+  top: auto;
+  left: 2em;
+  right: 2em;
+  bottom: 2em;
+  height: auto;
   display: block;
 }
 body >ul >li.keep section {
-  max-height: 50%;
   z-index: 5;
+}
+body section,
+body >form {
+  font-size: 15px;
+}
+body section button,
+body >form button,
+body section dt,
+body >form dt,
+body section dd,
+body >form dd {
+  border-radius: 0.3em;
+  box-shadow: 0 0 0.2em #ffc0dd;
+  padding: 0 0.2em;
+  margin: 0 0.4em 0 0;
+  line-height: 1.8em;
+  min-height: 1.8em;
+  color: inherit;
+}
+body section button:hover,
+body >form button:hover,
+body section dt:hover,
+body >form dt:hover,
+body section dd:hover,
+body >form dd:hover {
+  background: #ffc0dd;
+}
+body section button,
+body >form button {
+  background-color: #ffc9e2;
+}
+body section dl,
+body >form dl {
+  display: box;
+  display: -webkit-box;
+  display: -moz-box;
+  width: 100%;
+}
+body section dl dt,
+body >form dl dt,
+body section dl dd,
+body >form dl dd {
+  cursor: pointer;
+}
+body section dl dt,
+body >form dl dt {
+  background-color: #ffcde4;
+  max-width: 10em;
+}
+body section dl dt.dragging,
+body >form dl dt.dragging {
+  padding: 0.5em;
+  border-radius: 0.5em;
+}
+body section dl dd,
+body >form dl dd {
+  background-color: #ffdcec;
+}
+body >section {
+  padding: 0;
+  height: 1em;
+}
+body >section:before {
+  display: block;
+  content: "";
+  height: 0em;
+  width: 0em;
+  border: 0.5em solid transparent;
+  border-bottom-color: #ff67ad;
+  margin: auto;
+}
+body >section:hover {
+  padding: 2em;
+  height: auto;
+  z-index: 2;
+}
+body >section:hover:before {
+  display: none;
+}
+body li>section {
+  padding: 2em;
+  height: 2em;
+  border-radius: 1em;
+  box-shadow: 0 0 6em #ffc6e0;
 }
 body section {
   position: fixed;
-  min-height: 30%;
-  max-height: 30%;
+  max-height: 40%;
   overflow: auto;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 1;
   background: #fff2f8;
-  box-shadow: 0 0 0.5em #ffc0dd;
 }
 body section h1 {
-  font-size: 16px;
   margin-bottom: 0.5em;
 }
 body section ul margin 1em .2em:after {
@@ -207,13 +311,14 @@ body section ul li {
   margin: 0.4em 0;
 }
 body >form {
+  padding: 2em;
   display: none;
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   background-color: #ffecf5;
-  z-index: 4;
+  z-index: 5;
   box-shadow: 0 0 2em 0 #ffcde4;
 }
 body >form textarea,
@@ -258,61 +363,6 @@ body >form input {
 }
 body >form textarea {
   height: 5em;
-}
-body section,
-body >form {
-  font-size: 15px;
-  padding: 2em;
-}
-body section button,
-body >form button,
-body section dt,
-body >form dt,
-body section dd,
-body >form dd {
-  border-radius: 0.3em;
-  box-shadow: 0 0 0.2em #ffc0dd;
-  padding: 0 0.2em;
-  margin: 0 0.4em 0 0;
-  line-height: 1.8em;
-  min-height: 1.8em;
-  color: inherit;
-}
-body section button:hover,
-body >form button:hover,
-body section dt:hover,
-body >form dt:hover,
-body section dd:hover,
-body >form dd:hover {
-  background: #ffc0dd;
-}
-body section button,
-body >form button {
-  background-color: #ffc9e2;
-}
-body .scheduleTitle {
-  cursor: pointer;
-}
-body dl {
-  display: box;
-  display: -webkit-box;
-  display: -moz-box;
-  width: 100%;
-}
-body dt,
-body dd {
-  cursor: pointer;
-}
-body dt {
-  background-color: #ffcde4;
-  max-width: 10em;
-}
-body dt.dragging {
-  padding: 0.5em;
-  border-radius: 0.5em;
-}
-body dd {
-  background-color: #ffdcec;
 }
 body section>ul {
   width: 100%;
