@@ -1632,7 +1632,7 @@ View = (function() {
     Controller.setEvent();
     count = Dom.get(month, "ul > li ").length;
     finish = Dom.get(month, "ul > .scheduleStatus3").length;
-    return month.firstChild.innerHTML += " ( 未完了:" + (count - finish) + " 計:" + count + ")";
+    return month.firstChild.innerHTML = month.firstChild.innerHTML.replace(/\(.+\)/, "") + " ( 未完了:" + (count - finish) + " 計:" + count + ")";
   };
 
   View.drawSchedule = function(properties, date, result, elem) {
