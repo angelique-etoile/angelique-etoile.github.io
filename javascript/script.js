@@ -408,7 +408,12 @@ Model = (function() {
     query = [];
     query[0] = q;
     return request.onsuccess = function() {
-      query[0].order = this.result.value.order + 1;
+      var order;
+      order = 0;
+      if (this.result) {
+        order = this.result.value.order;
+      }
+      query[0].order = order + 1;
       return model.setSchedules(query);
     };
   };
@@ -470,7 +475,7 @@ Model = (function() {
         str = cls.replace("selectSchedule", "").toLowerCase().replace(/[0-9]/, "");
         query = [];
         query[0] = this.getSchedules(View.getId(elem));
-        query[0][str] = parseInt(View.getId(elem));
+        query[0][str] = parseInt(elem.selectedIndex + 1);
         _results.push(this.setSchedules(query));
       } else {
         _results.push(void 0);
