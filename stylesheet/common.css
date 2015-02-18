@@ -20,7 +20,7 @@ body >nav {
   overflow: hidden;
   padding: 0 1em;
 }
-body >nav:hover {
+body >nav.keep {
   height: auto;
 }
 body >nav >h1,
@@ -136,9 +136,7 @@ body .startDay6 >li:nth-of-type(n+16).keep >section {
 body >ul {
   width: 100%;
   height: 100%;
-  padding-bottom: 3em;
   padding-top: 1em;
-  margin-bottom: -2em;
   position: relative;
   overflow: auto;
 }
@@ -250,30 +248,26 @@ body >form dl dd {
 }
 body >section {
   padding: 0;
-  height: 1em;
+  height: 2em;
 }
 body >section >* {
   display: none;
 }
-body >section:before {
+body >section .clickMonth {
   display: block;
-  content: "";
-  height: 0em;
-  width: 0em;
-  border: 0.5em solid transparent;
-  border-bottom-color: #ff67ad;
-  margin: auto;
 }
-body >section:hover {
+body >section.keep {
   padding: 2em;
   height: auto;
   z-index: 2;
 }
-body >section:hover:before {
-  display: none;
-}
-body >section:hover >* {
+body >section.keep >* {
   display: block;
+}
+body li:hover:not(.keep)>section {
+  animation: openSchedules 0.5s ease;
+  -webkit-animation: openSchedules 0.5s ease;
+  -moz-animation: openSchedules 0.5s ease;
 }
 body li>section {
   padding: 2em;
@@ -536,4 +530,48 @@ body>ul>li>span:first-child {
 }
 .scheduleTitle {
   cursor: pointer;
+}
+@-moz-keyframes openSchedules {
+  0% {
+    opacity: 0;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes openSchedules {
+  0% {
+    opacity: 0;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@-o-keyframes openSchedules {
+  0% {
+    opacity: 0;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes openSchedules {
+  0% {
+    opacity: 0;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }

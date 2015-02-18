@@ -26,7 +26,7 @@ Controller = (function() {
 
   Controller.prototype.init = function() {
     plugin = new Plugins(data);
-    return this.setDate(0);
+    return this.setCurrent(0);
   };
 
   Controller.prototype.setProperties = function() {
@@ -42,20 +42,20 @@ Controller = (function() {
     return current;
   };
 
-  Controller.prototype.setCurrent = function(key, value) {
-    return current[key] = value;
+  Controller.prototype.setDate = function(offset) {
+    this.setCurrent(offset);
+    data.loadSchedules();
+    return plugin.setDate(current);
   };
 
-  Controller.prototype.setDate = function(offset) {
+  Controller.prototype.setCurrent = function(offset) {
     var day1st;
     current = this.getYearMonth(offset);
     current.monthDays = 31 - (new Date(current.year, current.month, 32).getDate());
     day1st = new Date(current.year, current.month, 1);
     current.startDay = day1st.getDay();
     current.unixTime1stDay = Math.floor(day1st / 1000 / 60 / 60 / 24);
-    data.loadSchedules();
-    View.setCalendar(current);
-    return plugin.setDate(current);
+    return View.setCalendar(current);
   };
 
   Controller.prototype.getYearMonth = function(monthOffset) {
@@ -92,6 +92,10 @@ Controller = (function() {
     NextMonth: function() {
       return controller.setDate(1);
     },
+    Nav: function(target) {
+      target.parentNode.classList.toggle("keep");
+      return View.calendarHeightChange();
+    },
     Day: function(target) {
       var calendar, day, _i, _len, _ref;
       if (view.form.check(data)) {
@@ -111,6 +115,10 @@ Controller = (function() {
         return target.classList.add("keep");
       }
     },
+    Month: function(target) {
+      target.parentNode.classList.toggle("keep");
+      return View.calendarHeightChange();
+    },
     ScheduleAdd: function(target) {
       return view.form.update(Dom.get(target.parentNode, "h1").item(0).innerHTML, null);
     },
@@ -126,19 +134,7 @@ Controller = (function() {
       }
     },
     ScheduleClose: function(target) {
-      var calendar, day, _i, _len, _ref, _results;
-      calendar = Dom.get(document, "body > ul").item(0);
-      _ref = calendar.childNodes;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        day = _ref[_i];
-        if (day.classList.contains("keep")) {
-          _results.push(day.classList.remove("keep"));
-        } else {
-          _results.push(void 0);
-        }
-      }
-      return _results;
+      return target.parentNode.classList.remove("keep");
     },
     ScheduleSubmit: function(target) {
       var query;
@@ -823,7 +819,7 @@ MouseEvent = (function() {
       try {
         point = MouseEvent.getPointer(evt);
         _results = [];
-        while (!((point.nodeName === "BODY") || (point.nodeName === "SECTION"))) {
+        while (!(point.nodeName === "BODY")) {
           _ref = point.classList;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             cls = _ref[_i];
@@ -1499,6 +1495,8 @@ View = (function() {
     Dom.create(document.body, "div", "日付未定").classList.add("dragTo", "dragToMonth");
     Dom.create(document.body, "div", "次月").classList.add("dragTo", "dragToNextMonth");
     Dom.create(document.body, "div", "前月").classList.add("dragTo", "dragToPrevMonth");
+    Dom.button(nav, "設定").classList.add("clickNav");
+    View.calendarHeightChange();
     form.date = Dom.label(form.base, "input", "日付");
     form.date.setAttribute("disabled", "disabled");
     form.title = Dom.label(form.base, "input", "タイトル");
@@ -1528,6 +1526,13 @@ View = (function() {
     return false;
   };
 
+  View.calendarHeightChange = function() {
+    nav = Dom.get(document, "body > nav").item(0);
+    calendar = Dom.get(document, "body > ul").item(0);
+    month = Dom.get(document, "body > section").item(0);
+    return calendar.style.height = (window.innerHeight - nav.offsetHeight - month.offsetHeight - 1) + "px";
+  };
+
   View.setCalendar = function(date) {
     calendar = Dom.get(document, "body > ul").item(0);
     while (calendar.hasChildNodes()) {
@@ -1536,7 +1541,7 @@ View = (function() {
     while (month.hasChildNodes()) {
       month.removeChild(month.firstChild);
     }
-    Dom.create(month, "h1", date.date);
+    Dom.button(month, date.date).classList.add("clickMonth");
     Dom.create(month, "ul");
     Dom.button(month, "追加").classList.add("clickScheduleAdd");
     while (calendar.classList.length > 0) {
@@ -1567,7 +1572,7 @@ View = (function() {
   };
 
   View.prototype.setSchedules = function(schedules, properties) {
-    var day, i, key, result, schedule, status, str, tmp, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
+    var count, day, finish, i, key, result, schedule, span, stat, status, str, tmp, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _m, _n, _o, _ref, _ref1, _ref2, _ref3, _ref4;
     _ref = calendar.childNodes;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       day = _ref[_i];
@@ -1582,8 +1587,27 @@ View = (function() {
       schedule = _ref2[_k];
       schedule.parentNode.removeChild(schedule);
     }
-    for (_l = 0, _len3 = schedules.length; _l < _len3; _l++) {
-      result = schedules[_l];
+    _ref3 = Dom.get(nav, " span ");
+    for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+      span = _ref3[_l];
+      nav.removeChild(span);
+    }
+    _ref4 = properties.status;
+    for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
+      stat = _ref4[_m];
+      if (stat) {
+        i = 0;
+        for (_n = 0, _len5 = schedules.length; _n < _len5; _n++) {
+          result = schedules[_n];
+          if (stat && result && result.status === stat.id) {
+            i++;
+          }
+        }
+        Dom.create(nav, "span", stat.name + i, Dom.get(nav, "ul").item(0)).style.marginLeft = ".5em";
+      }
+    }
+    for (_o = 0, _len6 = schedules.length; _o < _len6; _o++) {
+      result = schedules[_o];
       if (result) {
         tmp = result.date.split("/");
         if (tmp.length === 2) {
@@ -1605,7 +1629,10 @@ View = (function() {
         }
       }
     }
-    return Controller.setEvent();
+    Controller.setEvent();
+    count = Dom.get(month, "ul > li ").length;
+    finish = Dom.get(month, "ul > .scheduleStatus3").length;
+    return month.firstChild.innerHTML += " ( 未完了:" + (count - finish) + " 計:" + count + ")";
   };
 
   View.drawSchedule = function(properties, date, result, elem) {
