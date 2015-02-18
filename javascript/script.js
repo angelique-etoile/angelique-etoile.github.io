@@ -1086,8 +1086,8 @@ PropertySetting = (function() {
   };
 
   PropertySetting.prototype.setConfigs = function() {
-    PropertySetting.view.textAlignChange();
-    return PropertySetting.view.startDayChange();
+    PropertySetting.view.startDayChange();
+    return PropertySetting.view.textAlignChange();
   };
 
   PropertySetting.prototype.setDate = function() {};
@@ -1315,7 +1315,7 @@ PropertySetting = (function() {
     StartDayChange: function(evt) {
       var offsetDay;
       offsetDay = 0;
-      if (data.getConfigs().offsetDay) {
+      if (!isNaN(data.getConfigs().offsetDay.value)) {
         offsetDay = data.getConfigs().offsetDay.value;
       }
       offsetDay = parseInt((++offsetDay) % 7);
@@ -1326,7 +1326,8 @@ PropertySetting = (function() {
     },
     TextAlignChange: function(evt) {
       var textAlign;
-      if (data.getConfigs().textAlign) {
+      textAlign = 0;
+      if (!isNaN(data.getConfigs().textAlign.value)) {
         textAlign = data.getConfigs().textAlign.value;
       }
       textAlign = parseInt((++textAlign) % align.length);
@@ -1341,7 +1342,7 @@ PropertySetting = (function() {
     startDayChange: function() {
       var calendar, cls, cols, i, monthDays, offsetDay, startDay, _i, _j, _k, _len, _ref, _ref1;
       offsetDay = 0;
-      if (data.getConfigs().offsetDay) {
+      if (!isNaN(data.getConfigs().offsetDay.value)) {
         offsetDay = data.getConfigs().offsetDay.value;
       }
       calendar = Dom.get(document, "body > ul").item(0);
@@ -1372,7 +1373,7 @@ PropertySetting = (function() {
     textAlignChange: function() {
       var textAlign;
       textAlign = 0;
-      if (data.getConfigs().textAlign) {
+      if (!isNaN(data.getConfigs().textAlign.value)) {
         textAlign = data.getConfigs().textAlign.value;
       }
       Dom.get(document, ".clickPropertySettingTextAlignChange").item(0).innerHTML = align[textAlign].name;
