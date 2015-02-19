@@ -253,6 +253,12 @@ body >section {
 body >section >* {
   display: none;
 }
+body >section >button {
+  float: left;
+}
+body >section:not(.keep) >button:nth-of-type(3) {
+  display: none;
+}
 body >section .clickMonth {
   display: block;
 }
@@ -261,8 +267,12 @@ body >section.keep {
   height: auto;
   z-index: 2;
 }
+body >section.keep >button:nth-of-type(2) {
+  display: none;
+}
+body >section.keep >button,
 body >section.keep >* {
-  display: block;
+  display: inherit;
 }
 body li:hover:not(.keep)>section {
   animation: openSchedules 0.5s ease;
