@@ -145,10 +145,10 @@ Controller = (function() {
       return view.form.update(Dom.get(target.parentNode, "h1").item(0).innerHTML, null);
     },
     ScheduleTitle: function(target) {
-      return view.form.update(Dom.get(target.parentNode, "dd").item(0).innerHTML, data.getSchedules(View.getId(target)));
+      return view.form.update(Dom.get(target.parentNode.parentNode.parentNode.parentNode, "h1").item(0).innerHTML, data.getSchedules(View.getId(target)));
     },
     ScheduleContent: function(target) {
-      return view.form.update(Dom.get(target.parentNode, "dd").item(0).innerHTML, data.getSchedules(View.getId(target)));
+      return this.ScheduleTitle(target);
     },
     ScheduleDelete: function(target) {
       if (confirm("削除を行います。よろしいですか？")) {
@@ -515,6 +515,7 @@ Model = (function() {
         };
       } else {
         getSchedulesLast("order", q);
+        return;
       }
     }
     return transaction.oncomplete = function() {
@@ -1688,7 +1689,7 @@ View = (function() {
   };
 
   View.prototype.setSchedules = function(schedules, properties) {
-    var day, k, key, result, s, schedule, status, str, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
+    var day, k, key, result, s, schedule, status, str, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
     _ref = calendar.childNodes;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       day = _ref[_i];
@@ -1698,13 +1699,7 @@ View = (function() {
         schedule.parentNode.removeChild(schedule);
       }
     }
-    _ref2 = tasks.childNodes;
-    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-      schedule = _ref2[_k];
-      if (schedule) {
-        tasks.removeChild(schedule);
-      }
-    }
+    tasks.innerHTML = "";
     Dom.create(tasks, "h1");
     for (k in schedules) {
       s = schedules[k];
@@ -1712,8 +1707,8 @@ View = (function() {
         Dom.create(tasks, "ul").classList.add(k + "Task");
         Dom.button(tasks, k).classList.add("clickTasks");
       }
-      for (_l = 0, _len3 = s.length; _l < _len3; _l++) {
-        result = s[_l];
+      for (_k = 0, _len2 = s.length; _k < _len2; _k++) {
+        result = s[_k];
         if (k === "date") {
           day = calendar.childNodes[parseInt(result.date.getDate() - 1)];
           View.drawSchedule(properties, result.date, result, Dom.get(day, "section > ul").item(0));
@@ -1744,7 +1739,6 @@ View = (function() {
       scheduleSect = Dom.create(scheduleItem, "dl");
       scheduleSect.classList.add("id" + result.id);
       Dom.create(scheduleSect, "dt", result.title).classList.add("scheduleTitle", "clickScheduleTitle", "draggable");
-      Dom.create(scheduleSect, "dd", result.date).classList.add("clickScheduleDate");
       Dom.create(scheduleSect, "dd", result.content).classList.add("clickScheduleContent");
       for (key in properties) {
         property = properties[key];

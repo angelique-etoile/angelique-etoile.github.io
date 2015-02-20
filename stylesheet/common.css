@@ -365,14 +365,7 @@ body >form textarea {
 body section>ul {
   width: 100%;
 }
-body section>ul >li.dateOverlap>dl>dd:first-of-type {
-  display: block;
-}
 body section>ul >li >dl>dd:first-of-type {
-  background-color: #ffc0dd;
-  display: none;
-}
-body section>ul >li >dl>dd:nth-of-type(2) {
   box-flex: 1;
   -webkit-box-flex: 1;
   -moz-box-flex: 1;
