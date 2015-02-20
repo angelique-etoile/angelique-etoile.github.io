@@ -1710,7 +1710,7 @@ View = (function() {
       s = schedules[k];
       if (k !== "date") {
         Dom.create(tasks, "ul").classList.add(k + "Task");
-        Dom.button(tasks, s[0].date).classList.add("clickTasks");
+        Dom.button(tasks, k).classList.add("clickTasks");
       }
       for (_l = 0, _len3 = s.length; _l < _len3; _l++) {
         result = s[_l];
