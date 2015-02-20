@@ -38,6 +38,11 @@ Controller = (function() {
     return plugin.setConfigs();
   };
 
+  Controller.prototype.setSchedules = function() {
+    view.setSchedules(data.getSchedules(), data.getProperties());
+    return plugin.setSchedules();
+  };
+
   Controller.prototype.getCurrent = function() {
     return current;
   };
@@ -101,7 +106,6 @@ Controller = (function() {
       if (view.form.check(data)) {
         view.form.close();
         calendar = Dom.get(document, "body > ul").item(0);
-        Dom.get(document, " body > form ").item(0).style.display = null;
         _ref = calendar.childNodes;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           day = _ref[_i];
@@ -115,8 +119,26 @@ Controller = (function() {
         return target.classList.add("keep");
       }
     },
-    Month: function(target) {
+    Tasks: function(target) {
+      var child, date, title, _i, _len, _ref;
       target.parentNode.classList.toggle("keep");
+      _ref = target.parentNode.childNodes;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        child = _ref[_i];
+        child.style.display = null;
+      }
+      if (target.parentNode.classList.contains("keep")) {
+        date = controller.getCurrent();
+        if (target.previousSibling.classList.contains("monthTask")) {
+          title = date.year + "/" + parseInt(date.month + 1);
+        } else if (target.previousSibling.classList.contains("yearTask")) {
+          title = date.year;
+        } else if (target.previousSibling.classList.contains("somedayTask")) {
+          title = "";
+        }
+        target.parentNode.firstChild.innerHTML = title;
+        target.previousSibling.style.display = "block";
+      }
       return View.calendarHeightChange();
     },
     ScheduleAdd: function(target) {
@@ -228,7 +250,7 @@ Holiday = (function() {
 var Model;
 
 Model = (function() {
-  var configs, controller, db, getSchedulesLast, initialData, model, plugin, properties, schedules, view, yearMonth;
+  var configs, controller, db, getSchedulesLast, initialData, model, plugin, properties, schedules, view;
 
   model = Model;
 
@@ -245,8 +267,6 @@ Model = (function() {
   properties = [];
 
   configs = [];
-
-  yearMonth = null;
 
   Model.prototype.dbName = "piaccoCalendar";
 
@@ -278,7 +298,7 @@ Model = (function() {
     model = this;
     view = v;
     controller = c;
-    request = this.iDB.open(this.dbName, 8);
+    request = this.iDB.open(this.dbName, 9);
     request.onupgradeneeded = function(evt) {
       var config, d, database, i, name, property, schedule, transaction, _i, _j, _len, _len1, _ref;
       database = evt.target.result;
@@ -342,7 +362,7 @@ Model = (function() {
           unique: false
         });
         request = schedule.index("date").openCursor();
-        return request.onsuccess = function() {
+        request.onsuccess = function() {
           var cursor, req;
           cursor = this.result;
           if (cursor) {
@@ -353,6 +373,26 @@ Model = (function() {
             req.onerror = function(evt) {
               return alert("error");
             };
+            return cursor["continue"]();
+          }
+        };
+      }
+      if (evt.oldVersion <= 8) {
+        transaction = evt.target.transaction;
+        schedule = transaction.objectStore("store");
+        request = schedule.openCursor();
+        return request.onsuccess = function() {
+          var cursor, req, splitDate;
+          cursor = this.result;
+          if (cursor) {
+            splitDate = cursor.value.date.split("/");
+            if (splitDate.length === 3) {
+              cursor.value.date = new Date(splitDate[0], eval(splitDate[1] - 1), splitDate[2]);
+              req = schedule.put(cursor.value);
+              req.onerror = function(evt) {
+                return alert("error");
+              };
+            }
             return cursor["continue"]();
           }
         };
@@ -369,28 +409,48 @@ Model = (function() {
     };
   }
 
-  Model.prototype.loadSchedules = function(date) {
-    var range, request, schedule, transaction;
-    if (!date) {
-      yearMonth = controller.getCurrent().date;
-    } else {
-      yearMonth = date;
-    }
+  Model.prototype.loadSchedules = function() {
+    var key, lower, month, r, range, request, schedule, transaction, upper, year;
+    year = controller.getCurrent().year;
+    month = controller.getCurrent().month;
     schedules = [];
     transaction = db.transaction(["store"], "readonly");
     schedule = transaction.objectStore("store");
-    range = IDBKeyRange.bound(yearMonth, yearMonth + "/9");
-    request = schedule.index("date").openCursor(range);
-    request.onsuccess = function() {
-      var cursor;
-      cursor = this.result;
-      if (cursor) {
-        schedules[cursor.value.order] = cursor.value;
-        return cursor["continue"]();
-      }
-    };
+    range = [];
+    lower = new Date(year, month, 1);
+    upper = new Date(year, month + 1, 0);
+    range.someday = IDBKeyRange.only("");
+    range.year = IDBKeyRange.only(year.toString());
+    range.month = IDBKeyRange.only(year + "/" + parseInt(month + 1));
+    range.date = IDBKeyRange.bound(lower, upper);
+    for (key in range) {
+      r = range[key];
+      schedules[key] = [];
+      request = schedule.index("date").openCursor(r);
+      request.onsuccess = (function(key) {
+        return function() {
+          var cursor;
+          cursor = this.result;
+          if (cursor) {
+            schedules[key].push(cursor.value);
+            return cursor["continue"]();
+          }
+        };
+      })(key);
+    }
     transaction.oncomplete = function() {
-      return view.setSchedules(model.getSchedules(), model.getProperties());
+      var tasks;
+      for (key in schedules) {
+        tasks = schedules[key];
+        tasks.sort(function(a, b) {
+          if (a.order > b.order) {
+            return 1;
+          } else {
+            return -1;
+          }
+        });
+      }
+      return controller.setSchedules();
     };
     return request.onerror = function(evt) {
       return alert("error");
@@ -416,12 +476,15 @@ Model = (function() {
   };
 
   Model.prototype.getSchedules = function(id) {
-    var item, _i, _len;
+    var item, key, schedule, _i, _len;
     if (id) {
-      for (_i = 0, _len = schedules.length; _i < _len; _i++) {
-        item = schedules[_i];
-        if (item && item.id === parseInt(id)) {
-          return item;
+      for (key in schedules) {
+        schedule = schedules[key];
+        for (_i = 0, _len = schedule.length; _i < _len; _i++) {
+          item = schedule[_i];
+          if (item && item.id === parseInt(id)) {
+            return item;
+          }
         }
       }
     } else {
@@ -430,11 +493,14 @@ Model = (function() {
   };
 
   Model.prototype.setSchedules = function(query) {
-    var q, request, schedule, transaction, _i, _len;
+    var d, q, request, schedule, transaction, _i, _len;
     transaction = db.transaction(["store"], "readwrite");
     schedule = transaction.objectStore("store");
     for (_i = 0, _len = query.length; _i < _len; _i++) {
       q = query[_i];
+      if ((typeof q.date === "string") && (d = q.date.split("/")) && (d.length === 3)) {
+        q.date = new Date(d[0], d[1] - 1, d[2]);
+      }
       if (!q.parent) {
         q.parent = null;
       }
@@ -773,7 +839,7 @@ MouseEvent = (function() {
           if (day.classList.contains("keep")) {
             day.classList.remove("keep");
           }
-          if (i === parseInt(query[0].date.split("/")[2] - 1)) {
+          if (i === (query[0].date.getDate() - 1)) {
             day.classList.add("keep");
           }
         }
@@ -1093,7 +1159,52 @@ PropertySetting = (function() {
 
   PropertySetting.prototype.setDate = function() {};
 
-  PropertySetting.prototype.loadSchedules = function() {};
+  PropertySetting.prototype.setSchedules = function() {
+    var cnt, i, item, k, s, schedule, schedules, stat, _i, _j, _len, _len1, _ref, _ref1, _results;
+    _ref = Dom.get(document, ".propertySettingStatus");
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      item = _ref[_i];
+      item.parentNode.removeChild(item);
+    }
+    _ref1 = data.getSchedules();
+    _results = [];
+    for (k in _ref1) {
+      s = _ref1[k];
+      if (k === "date") {
+        _results.push((function() {
+          var _j, _k, _len1, _len2, _ref2, _results1;
+          _ref2 = data.getProperties().status;
+          _results1 = [];
+          for (i = _j = 0, _len1 = _ref2.length; _j < _len1; i = ++_j) {
+            stat = _ref2[i];
+            if (stat) {
+              cnt = 0;
+              for (_k = 0, _len2 = s.length; _k < _len2; _k++) {
+                schedule = s[_k];
+                if (stat && schedule && i === schedule.status) {
+                  cnt++;
+                }
+              }
+              _results1.push(Dom.create(Dom.get(document, "body > nav").item(0), "span", " " + stat.name + ":" + cnt + " ", Dom.get(document, "body > nav > .windowConfig").item(0)).classList.add("propertySettingStatus"));
+            } else {
+              _results1.push(void 0);
+            }
+          }
+          return _results1;
+        })());
+      } else {
+        i = 0;
+        for (_j = 0, _len1 = s.length; _j < _len1; _j++) {
+          schedules = s[_j];
+          if (schedules.status < 3) {
+            i++;
+          }
+        }
+        _results.push(Dom.get(document, "." + k + "Task").item(0).nextSibling.innerHTML += " (未完了:" + i + ")");
+      }
+    }
+    return _results;
+  };
 
   PropertySetting.prototype.statusSelector = function() {
     var buttonWrapper, buttonWrapperParent, checkbox, i, item, key, label, name, parent, properties, stat, status, ul, wrap, _i, _j, _len, _len1, _ref, _results;
@@ -1471,12 +1582,12 @@ window.addEventListener("load", function() {
   return controller = new Controller();
 });
 
-plugins = ["PropertySetting", "Rokusei"];
+plugins = ["PropertySetting", "Holiday", "Rokusei"];
 
 var View;
 
 View = (function() {
-  var calendar, form, month, nav;
+  var calendar, form, nav, tasks;
 
   form = [];
 
@@ -1484,12 +1595,12 @@ View = (function() {
 
   calendar = null;
 
-  month = null;
+  tasks = null;
 
   function View() {
     nav = Dom.create(document.body, "nav");
     calendar = Dom.create(document.body, "ul");
-    month = Dom.create(document.body, "section");
+    tasks = Dom.create(document.body, "section");
     form.base = Dom.create(document.body, "form");
     Dom.button(nav, "◁").classList.add("clickPrevMonth");
     Dom.create(nav, "h1");
@@ -1529,25 +1640,22 @@ View = (function() {
   };
 
   View.calendarHeightChange = function() {
-    nav = Dom.get(document, "body > nav").item(0);
-    calendar = Dom.get(document, "body > ul").item(0);
-    month = Dom.get(document, "body > section").item(0);
-    return calendar.style.height = (window.innerHeight - nav.offsetHeight - month.offsetHeight - 1) + "px";
+    var bottom;
+    if (tasks.offsetHeight > form.base.offsetHeight) {
+      bottom = tasks.offsetHeight;
+    } else {
+      bottom = form.base.offsetHeight;
+    }
+    return calendar.style.height = (window.innerHeight - nav.offsetHeight - bottom - 1) + "px";
   };
 
   View.setCalendar = function(date) {
-    calendar = Dom.get(document, "body > ul").item(0);
     while (calendar.hasChildNodes()) {
       calendar.removeChild(calendar.firstChild);
     }
-    while (month.hasChildNodes()) {
-      month.removeChild(month.firstChild);
+    while (tasks.hasChildNodes()) {
+      tasks.removeChild(tasks.firstChild);
     }
-    Dom.create(month, "h1", date.date);
-    Dom.create(month, "ul");
-    Dom.button(month, "追加").classList.add("clickScheduleAdd");
-    Dom.button(month, date.date).classList.add("clickMonth");
-    Dom.button(month, "閉じる").classList.add("clickMonth");
     while (calendar.classList.length > 0) {
       calendar.classList.remove(calendar.classList[0]);
     }
@@ -1576,7 +1684,7 @@ View = (function() {
   };
 
   View.prototype.setSchedules = function(schedules, properties) {
-    var count, day, finish, i, key, monthButton, result, schedule, span, stat, status, str, tmp, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _m, _n, _o, _ref, _ref1, _ref2, _ref3, _ref4;
+    var day, k, key, result, s, schedule, status, str, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
     _ref = calendar.childNodes;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       day = _ref[_i];
@@ -1586,39 +1694,24 @@ View = (function() {
         schedule.parentNode.removeChild(schedule);
       }
     }
-    _ref2 = Dom.get(month, "ul > li");
+    _ref2 = tasks.childNodes;
     for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
       schedule = _ref2[_k];
-      schedule.parentNode.removeChild(schedule);
-    }
-    _ref3 = Dom.get(nav, " span ");
-    for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-      span = _ref3[_l];
-      nav.removeChild(span);
-    }
-    _ref4 = properties.status;
-    for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
-      stat = _ref4[_m];
-      if (stat) {
-        i = 0;
-        for (_n = 0, _len5 = schedules.length; _n < _len5; _n++) {
-          result = schedules[_n];
-          if (stat && result && result.status === stat.id) {
-            i++;
-          }
-        }
-        Dom.create(nav, "span", stat.name + i, Dom.get(nav, "ul").item(0)).style.marginLeft = ".5em";
+      if (schedule) {
+        tasks.removeChild(schedule);
       }
     }
-    for (_o = 0, _len6 = schedules.length; _o < _len6; _o++) {
-      result = schedules[_o];
-      if (result) {
-        tmp = result.date.split("/");
-        if (tmp.length === 2) {
-          View.drawSchedule(properties, result.date, result, Dom.get(month, "ul").item(0));
-        } else {
-          i = parseInt(tmp[2] - 1);
-          day = calendar.childNodes[i];
+    Dom.create(tasks, "h1");
+    for (k in schedules) {
+      s = schedules[k];
+      if (k !== "date") {
+        Dom.create(tasks, "ul").classList.add(k + "Task");
+        Dom.button(tasks, s[0].date).classList.add("clickTasks");
+      }
+      for (_l = 0, _len3 = s.length; _l < _len3; _l++) {
+        result = s[_l];
+        if (k === "date") {
+          day = calendar.childNodes[parseInt(result.date.getDate() - 1)];
           View.drawSchedule(properties, result.date, result, Dom.get(day, "section > ul").item(0));
           schedule = Dom.create(Dom.get(day, "ul").item(0), "li", result.title);
           schedule.classList.add("id" + result.id, "scheduleTitle", "draggable");
@@ -1630,14 +1723,14 @@ View = (function() {
             str = key.charAt(0).toUpperCase() + key.substr(1);
             schedule.classList.add("schedule" + str + result[key]);
           }
+        } else {
+          View.drawSchedule(properties, result.date, result, Dom.get(tasks, "." + k + "Task").item(0));
         }
       }
     }
-    Controller.setEvent();
-    count = Dom.get(month, "ul > li ").length;
-    finish = Dom.get(month, "ul > .scheduleStatus3").length;
-    monthButton = Dom.get(month, ".clickMonth").item(0);
-    return monthButton.innerHTML = monthButton.innerHTML.replace(/\(.+\)/, "") + " ( 未完了:" + (count - finish) + " 計:" + count + ")";
+    Dom.button(tasks, "追加").classList.add("clickScheduleAdd");
+    Dom.button(tasks, "閉じる").classList.add("clickTasks");
+    return Controller.setEvent();
   };
 
   View.drawSchedule = function(properties, date, result, elem) {
@@ -1694,14 +1787,20 @@ View = (function() {
       form.title.value = null;
       form.content.value = null;
       form.id.value = null;
-      return form.base.style.display = null;
+      form.base.style.display = null;
+      try {
+        Dom.get(document, " body > ul > .keep > section").item(0).style.display = null;
+      } catch (_error) {}
+      return View.calendarHeightChange();
     },
     update: function(date, item) {
       form.base.style.display = "block";
       form.date.value = date;
       form.title.value = item ? item.title : "";
       form.content.value = item ? item.content : "";
-      return form.id.value = item ? item.id : "";
+      form.id.value = item ? item.id : "";
+      Dom.get(document, " body > ul > .keep > section").item(0).style.display = "none";
+      return View.calendarHeightChange();
     }
   };
 

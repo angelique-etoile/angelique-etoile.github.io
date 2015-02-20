@@ -256,10 +256,11 @@ body >section >* {
 body >section >button {
   float: left;
 }
-body >section:not(.keep) >button:nth-of-type(3) {
+body >section:not(.keep) >button.clickScheduleAdd,
+body >section:not(.keep) >button:last-of-type {
   display: none;
 }
-body >section .clickMonth {
+body >section .clickTasks {
   display: block;
 }
 body >section.keep {
@@ -267,11 +268,12 @@ body >section.keep {
   height: auto;
   z-index: 2;
 }
-body >section.keep >button:nth-of-type(2) {
+body >section.keep >button {
   display: none;
 }
-body >section.keep >button,
-body >section.keep >* {
+body >section.keep >h1,
+body >section.keep >button.clickScheduleAdd,
+body >section.keep >button:last-of-type {
   display: inherit;
 }
 body li:hover:not(.keep)>section {
