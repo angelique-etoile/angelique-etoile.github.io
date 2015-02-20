@@ -385,14 +385,18 @@ Model = (function() {
           var cursor, req, splitDate;
           cursor = this.result;
           if (cursor) {
-            splitDate = cursor.value.date.split("/");
-            if (splitDate.length === 3) {
-              cursor.value.date = new Date(splitDate[0], eval(splitDate[1] - 1), splitDate[2]);
-              req = schedule.put(cursor.value);
-              req.onerror = function(evt) {
-                return alert("error");
-              };
+            if (typeof cuesor.value.date === "string") {
+              splitDate = cursor.value.date.split("/");
+              if (splitDate.length === 3) {
+                cursor.value.date = new Date(splitDate[0], eval(splitDate[1] - 1), splitDate[2]);
+              }
+            } else {
+              cursor.value.date = "";
             }
+            req = schedule.put(cursor.value);
+            req.onerror = function(evt) {
+              return alert("error");
+            };
             return cursor["continue"]();
           }
         };
