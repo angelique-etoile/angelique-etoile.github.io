@@ -161,16 +161,15 @@ Controller = (function() {
     ScheduleSubmit: function(target) {
       var query;
       query = [];
-      query[0] = {
-        title: view.getForm("title").value,
-        date: view.getForm("date").value,
-        content: view.getForm("content").value,
-        post_date: new Date()
-      };
       if (view.getForm("id").value) {
-        query[0].id = parseInt(view.getForm("id").value);
-        query[0].order = data.getSchedules(query[0].id).order;
+        query[0] = data.getSchedules(parseInt(view.getForm("id").value));
+      } else {
+        query[0].post_date = new Date();
       }
+      query[0].title = view.getForm("title").value;
+      query[0].date = view.getForm("date").value;
+      query[0].content = view.getForm("content").value;
+      query[0].last_update = new Date();
       data.setSchedules(query);
       return view.form.close();
     },
