@@ -385,7 +385,7 @@ Model = (function() {
           var cursor, req, splitDate;
           cursor = this.result;
           if (cursor) {
-            if (typeof cuesor.value.date === "string") {
+            if (typeof cursor.value.date === "string") {
               splitDate = cursor.value.date.split("/");
               if (splitDate.length === 3) {
                 cursor.value.date = new Date(splitDate[0], eval(splitDate[1] - 1), splitDate[2]);
