@@ -164,6 +164,7 @@ Controller = (function() {
       if (view.getForm("id").value) {
         query[0] = data.getSchedules(parseInt(view.getForm("id").value));
       } else {
+        query[0] = [];
         query[0].post_date = new Date();
       }
       query[0].title = view.getForm("title").value;
