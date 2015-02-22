@@ -812,29 +812,35 @@ MouseEvent = (function() {
         document.body.removeChild(dragging.elem);
         if (dragging.elem.classList.contains("scheduleTitle")) {
           to = document.elementFromPoint(evt.pageX, evt.pageY);
-          while (!((to.tagName === "BODY") || (to.classList.contains("clickDay")) || (to.classList.contains("dragTo")) || (to.tagName === "DL"))) {
-            to = to.parentNode;
-          }
-          if (to.classList.contains("clickDay")) {
-            i = 1;
-            while (to.previousSibling) {
-              ++i;
-              to = to.previousSibling;
-            }
-            query[0].date = controller.getCurrent().date + "/" + i;
-          } else if (to.classList.contains("dragTo")) {
+          if (to.classList.contains("dragTo")) {
             if (to.classList.contains("dragToMonth")) {
               query[0].date = controller.getCurrent().date;
+            } else if (to.classList.contains("dragToYear")) {
+              query[0].date = controller.getCurrent().year.toString();
+            } else if (to.classList.contains("dragToSomeday")) {
+              query[0].date = "";
             } else if (to.classList.contains("dragToPrevMonth")) {
               query[0].date = controller.getYearMonth(-1).date;
             } else if (to.classList.contains("dragToNextMonth")) {
               query[0].date = controller.getYearMonth(1).date;
             }
-          } else if (to.tagName === "DL") {
-            query[1] = data.getSchedules(View.getId(to));
-            tmp = query[1].order;
-            query[1].order = query[0].order;
-            query[0].order = tmp;
+          } else {
+            while (!((to.tagName === "BODY") || (to.classList.contains("clickDay")) || (to.classList.contains("dragTo")) || (to.tagName === "DL"))) {
+              to = to.parentNode;
+            }
+            if (to.classList.contains("clickDay")) {
+              i = 1;
+              while (to.previousSibling) {
+                ++i;
+                to = to.previousSibling;
+              }
+              query[0].date = controller.getCurrent().date + "/" + i;
+            } else if (to.tagName === "DL") {
+              query[1] = data.getSchedules(View.getId(to));
+              tmp = query[1].order;
+              query[1].order = query[0].order;
+              query[0].order = tmp;
+            }
           }
         }
         data.setSchedules(query);
@@ -844,7 +850,7 @@ MouseEvent = (function() {
           if (day.classList.contains("keep")) {
             day.classList.remove("keep");
           }
-          if (i === (query[0].date.getDate() - 1)) {
+          if ((query[0].date instanceof Date) && (i === (query[0].date.getDate() - 1))) {
             day.classList.add("keep");
           }
         }
@@ -1165,7 +1171,7 @@ PropertySetting = (function() {
   PropertySetting.prototype.setDate = function() {};
 
   PropertySetting.prototype.setSchedules = function() {
-    var cnt, i, item, k, s, schedule, schedules, stat, _i, _j, _len, _len1, _ref, _ref1, _results;
+    var cnt, i, item, k, s, schedule, schedules, stat, str, _i, _j, _len, _len1, _ref, _ref1, _results;
     _ref = Dom.get(document, ".propertySettingStatus");
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       item = _ref[_i];
@@ -1205,7 +1211,8 @@ PropertySetting = (function() {
             i++;
           }
         }
-        _results.push(Dom.get(document, "." + k + "Task").item(0).nextSibling.innerHTML += " (未完了:" + i + ")");
+        str = Dom.get(document, "." + k + "Task").item(0).nextSibling.innerHTML.replace(/\(.+\)/, "");
+        _results.push(Dom.get(document, "." + k + "Task").item(0).nextSibling.innerHTML = str + " (未完了:" + i + ")");
       }
     }
     return _results;
@@ -1432,7 +1439,7 @@ PropertySetting = (function() {
     StartDayChange: function(evt) {
       var offsetDay;
       offsetDay = 0;
-      if (!isNaN(data.getConfigs().offsetDay.value)) {
+      if ((data.getConfigs().offsetDay) && (!isNaN(data.getConfigs().offsetDay.value))) {
         offsetDay = data.getConfigs().offsetDay.value;
       }
       offsetDay = parseInt((++offsetDay) % 7);
@@ -1444,7 +1451,7 @@ PropertySetting = (function() {
     TextAlignChange: function(evt) {
       var textAlign;
       textAlign = 0;
-      if (!isNaN(data.getConfigs().textAlign.value)) {
+      if ((data.getConfigs().textAlign) && (!isNaN(data.getConfigs().textAlign.value))) {
         textAlign = data.getConfigs().textAlign.value;
       }
       textAlign = parseInt((++textAlign) % align.length);
@@ -1459,7 +1466,7 @@ PropertySetting = (function() {
     startDayChange: function() {
       var calendar, cls, cols, i, monthDays, offsetDay, startDay, _i, _j, _k, _len, _ref, _ref1;
       offsetDay = 0;
-      if (!isNaN(data.getConfigs().offsetDay.value)) {
+      if ((data.getConfigs().offsetDay) && (!isNaN(data.getConfigs().offsetDay.value))) {
         offsetDay = data.getConfigs().offsetDay.value;
       }
       calendar = Dom.get(document, "body > ul").item(0);
@@ -1490,7 +1497,7 @@ PropertySetting = (function() {
     textAlignChange: function() {
       var textAlign;
       textAlign = 0;
-      if (!isNaN(data.getConfigs().textAlign.value)) {
+      if ((data.getConfigs().textAlign) && (!isNaN(data.getConfigs().textAlign.value))) {
         textAlign = data.getConfigs().textAlign.value;
       }
       Dom.get(document, ".clickPropertySettingTextAlignChange").item(0).innerHTML = align[textAlign].name;
@@ -1573,7 +1580,7 @@ Rokusei = (function() {
       child.style.fontWeight = "200";
       child.style.color = document.defaultView.getComputedStyle(target.parentNode, null).color;
     }
-    return Dom.get(document, "nav h1").item(0).innerHTML = date.year + "年 ( " + this.status[(date.year + this.yearOffset) % 12].name + " ) " + (date.month + 1) + "月 ( " + this.status[(date.year + this.monthOffset) % 13].name + " )";
+    return Dom.get(document, "nav h1").item(0).innerHTML = date.year + "年 ( " + this.status[(date.year + this.yearOffset) % 12].name + " ) " + (date.month + 1) + "月 ( " + this.status[(date.month + this.monthOffset) % 13].name + " )";
   };
 
   return Rokusei;
@@ -1610,7 +1617,9 @@ View = (function() {
     Dom.button(nav, "◁").classList.add("clickPrevMonth");
     Dom.create(nav, "h1");
     Dom.button(nav, "▷").classList.add("clickNextMonth");
-    Dom.create(document.body, "div", "日付未定").classList.add("dragTo", "dragToMonth");
+    Dom.create(document.body, "div", "当月予定").classList.add("dragTo", "dragToMonth");
+    Dom.create(document.body, "div", "当年予定").classList.add("dragTo", "dragToYear");
+    Dom.create(document.body, "div", "日時未定").classList.add("dragTo", "dragToSomeday");
     Dom.create(document.body, "div", "次月").classList.add("dragTo", "dragToNextMonth");
     Dom.create(document.body, "div", "前月").classList.add("dragTo", "dragToPrevMonth");
     Dom.button(nav, "設定").classList.add("clickNav");
@@ -1670,7 +1679,7 @@ View = (function() {
   };
 
   View.setDays = function(date) {
-    var i, oneDay, today, wrapper, _i, _ref;
+    var i, k, oneDay, today, wrapper, _i, _j, _len, _ref, _ref1;
     for (i = _i = 0, _ref = date.monthDays; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
       oneDay = Dom.create(calendar, "li");
       Dom.create(oneDay, "span", i + 1);
@@ -1684,12 +1693,22 @@ View = (function() {
     }
     today = new Date();
     if (date.year === today.getFullYear() && date.month === today.getMonth()) {
-      return Dom.get(calendar, "li").item(today.getDate() - 1).classList.add("today");
+      Dom.get(calendar, "li").item(today.getDate() - 1).classList.add("today");
     }
+    tasks.innerHTML = "";
+    Dom.create(tasks, "h1");
+    _ref1 = [["someday", "未定"], ["year", date.year], ["month", date.year + "/" + (date.month + 1)]];
+    for (_j = 0, _len = _ref1.length; _j < _len; _j++) {
+      k = _ref1[_j];
+      Dom.create(tasks, "ul").classList.add(k[0] + "Task");
+      Dom.button(tasks, k[1]).classList.add("clickTasks");
+    }
+    Dom.button(tasks, "追加").classList.add("clickScheduleAdd");
+    return Dom.button(tasks, "閉じる").classList.add("clickTasks");
   };
 
   View.prototype.setSchedules = function(schedules, properties) {
-    var day, k, key, result, s, schedule, status, str, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
+    var day, k, key, result, s, schedule, status, str, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
     _ref = calendar.childNodes;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       day = _ref[_i];
@@ -1699,16 +1718,15 @@ View = (function() {
         schedule.parentNode.removeChild(schedule);
       }
     }
-    tasks.innerHTML = "";
-    Dom.create(tasks, "h1");
+    _ref2 = Dom.get(tasks, "ul > li");
+    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+      schedule = _ref2[_k];
+      schedule.parentNode.removeChild(schedule);
+    }
     for (k in schedules) {
       s = schedules[k];
-      if (k !== "date") {
-        Dom.create(tasks, "ul").classList.add(k + "Task");
-        Dom.button(tasks, k).classList.add("clickTasks");
-      }
-      for (_k = 0, _len2 = s.length; _k < _len2; _k++) {
-        result = s[_k];
+      for (_l = 0, _len3 = s.length; _l < _len3; _l++) {
+        result = s[_l];
         if (k === "date") {
           day = calendar.childNodes[parseInt(result.date.getDate() - 1)];
           View.drawSchedule(properties, result.date, result, Dom.get(day, "section > ul").item(0));
@@ -1727,8 +1745,6 @@ View = (function() {
         }
       }
     }
-    Dom.button(tasks, "追加").classList.add("clickScheduleAdd");
-    Dom.button(tasks, "閉じる").classList.add("clickTasks");
     return Controller.setEvent();
   };
 

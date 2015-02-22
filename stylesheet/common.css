@@ -163,6 +163,9 @@ body >ul >li:hover {
 body >ul >li >ul {
   padding: 0.2em 0.4em 0.1em;
 }
+body >ul >li >ul >li {
+  list-style: decimal inside;
+}
 body >ul >li >section,
 body >ul >li:not(.keep)>section:hover {
   display: none;
@@ -471,32 +474,45 @@ body>ul>li>span:first-child {
   font-weight: 900;
 }
 .dragToMonth,
+.dragToYear,
+.dragToSomeday,
 .dragToNextMonth,
 .dragToPrevMonth {
   position: fixed;
   background-color: #ff67ad;
   border: solid 0.5em #ffdfee;
   color: #ffdfee;
-  z-index: 4;
+  z-index: 10000;
   text-align: center;
   font-size: 1.2em;
 }
 .dragTo {
   display: none;
-  z-index: 10000;
   opacity: 0.5;
   box-sizing: content-box;
 }
-.dragToMonth {
+.dragToMonth,
+.dragToYear,
+.dragToSomeday {
   width: 4em;
   height: 1em;
   padding: 0.5em 2em;
   bottom: 0;
-  left: 0;
-  right: 0;
   border-radius: 5em 5em 0 0/3em 3em 0 0;
   border-bottom: none;
   margin: auto;
+}
+.dragToYear {
+  left: 0;
+  right: 0;
+}
+.dragToSomeday {
+  left: -20em;
+  right: 0;
+}
+.dragToMonth {
+  left: 0;
+  right: -20em;
 }
 .dragToNextMonth,
 .dragToPrevMonth {
