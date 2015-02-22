@@ -1580,7 +1580,7 @@ Rokusei = (function() {
       child.style.fontWeight = "200";
       child.style.color = document.defaultView.getComputedStyle(target.parentNode, null).color;
     }
-    return Dom.get(document, "nav h1").item(0).innerHTML = date.year + "年 ( " + this.status[(date.year + this.yearOffset) % 12].name + " ) " + (date.month + 1) + "月 ( " + this.status[(date.month + this.monthOffset) % 13].name + " )";
+    return Dom.get(document, "nav h1").item(0).innerHTML = date.year + "年 ( " + this.status[(date.year + this.yearOffset) % 12].name + " ) " + (date.month + 1) + "月 ( " + this.status[(date.month + this.monthOffset) % 12].name + " )";
   };
 
   return Rokusei;
