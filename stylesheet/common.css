@@ -423,6 +423,10 @@ body section>ul >li >dl>dd select {
 .day >span:first-child {
   background-color: #efe;
 }
+.day6 >span:first-child {
+  background-color: #e7f3ff;
+  color: #07e;
+}
 .day0 >span:first-child,
 .holiday >span:first-child {
   background-color: #ffdbf3;
@@ -430,11 +434,9 @@ body section>ul >li >dl>dd select {
 }
 .day0 .holidayName,
 .holiday .holidayName {
+  font-size: 70%;
+  font-weight: 300;
   color: #ff14b1;
-}
-.day6 >span:first-child {
-  background-color: #e7f3ff;
-  color: #07e;
 }
 .today {
   background-color: #ffd;

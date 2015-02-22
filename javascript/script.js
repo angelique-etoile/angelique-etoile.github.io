@@ -231,8 +231,8 @@ Holiday = (function() {
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         day = _ref[_i];
-        target = calendar.childNodes[parseInt(day.start.date.split("-")[2]) - 1].querySelector("ul");
-        Dom.create(target, "li", day.summary, target.firstChild).classList.add("holidayName");
+        target = calendar.childNodes[parseInt(day.start.date.split("-")[2]) - 1].querySelector("span");
+        Dom.create(target, "span", day.summary).classList.add("holidayName");
         _results.push(target.parentNode.classList.add("holiday"));
       }
       return _results;
