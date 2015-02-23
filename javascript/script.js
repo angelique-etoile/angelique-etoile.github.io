@@ -142,10 +142,10 @@ Controller = (function() {
       return View.calendarHeightChange();
     },
     ScheduleAdd: function(target) {
-      return view.form.update(Dom.get(target.parentNode, "h1").item(0).innerHTML, null);
+      return view.form.scheduleAdd(Dom.get(target.parentNode, "h1").item(0).innerHTML);
     },
     ScheduleTitle: function(target) {
-      return view.form.update(Dom.get(target.parentNode.parentNode.parentNode.parentNode, "h1").item(0).innerHTML, data.getSchedules(View.getId(target)));
+      return data.getSchedules(View.getId(target), view.form.scheduleUpdate);
     },
     ScheduleContent: function(target) {
       return this.ScheduleTitle(target);
@@ -159,10 +159,17 @@ Controller = (function() {
       return target.parentNode.parentNode.classList.remove("keep");
     },
     ScheduleSubmit: function(target) {
+      if (view.getForm("id").value) {
+        return data.getSchedules(view.getForm("id").value, this.ScheduleSubmitCallback);
+      } else {
+        return this.ScheduleSubmitCallback();
+      }
+    },
+    ScheduleSubmitCallback: function(old) {
       var query;
       query = [];
-      if (view.getForm("id").value) {
-        query[0] = data.getSchedules(parseInt(view.getForm("id").value));
+      if (old) {
+        query[0] = old;
       } else {
         query[0] = [];
         query[0].post_date = new Date();
@@ -178,6 +185,14 @@ Controller = (function() {
       if (view.form.check(data)) {
         return view.form.close();
       }
+    }
+  };
+
+  Controller.dblclick = {
+    Day: function(target) {
+      var date;
+      date = current;
+      return view.form.scheduleAdd(Dom.get(target, "section > h1").item(0).innerHTML);
     }
   };
 
@@ -479,18 +494,15 @@ Model = (function() {
     };
   };
 
-  Model.prototype.getSchedules = function(id) {
-    var item, key, schedule, _i, _len;
+  Model.prototype.getSchedules = function(id, callback, arg) {
+    var request, schedule, transaction;
     if (id) {
-      for (key in schedules) {
-        schedule = schedules[key];
-        for (_i = 0, _len = schedule.length; _i < _len; _i++) {
-          item = schedule[_i];
-          if (item && item.id === parseInt(id)) {
-            return item;
-          }
-        }
-      }
+      transaction = db.transaction(["store"], "readonly");
+      schedule = transaction.objectStore("store");
+      request = schedule.get(parseInt(id));
+      return request.onsuccess = function() {
+        return callback(this.result, arg);
+      };
     } else {
       return schedules;
     }
@@ -534,17 +546,21 @@ Model = (function() {
   };
 
   Model.prototype.setScheduleStatus = function(elem) {
+    return this.getSchedules(View.getId(elem), this.setScheduleStatusCallback, elem);
+  };
+
+  Model.prototype.setScheduleStatusCallback = function(q, elem) {
     var cls, query, str, _i, _len, _ref, _results;
+    query = [];
+    query[0] = q;
     _ref = elem.classList;
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       cls = _ref[_i];
       if (cls && cls !== "select" && cls.indexOf("select") === 0) {
         str = cls.replace("selectSchedule", "").toLowerCase().replace(/\d+/, "");
-        query = [];
-        query[0] = this.getSchedules(View.getId(elem));
         query[0][str] = parseInt(elem.selectedIndex + 1);
-        _results.push(this.setSchedules(query));
+        _results.push(model.setSchedules(query));
       } else {
         _results.push(void 0);
       }
@@ -758,7 +774,8 @@ MouseEvent = (function() {
           return window.removeEventListener("mouseup", MouseEvent.mouse.swipeEnd);
         }, 400);
       }
-      return window.addEventListener("click", MouseEvent.mouse.clickEvent);
+      window.addEventListener("click", MouseEvent.mouse.clickEvent);
+      return window.addEventListener("dblclick", MouseEvent.mouse.doubleclickEvent);
     },
     dragMove: function(evt) {
       var mouseOver, point;
@@ -797,13 +814,14 @@ MouseEvent = (function() {
           dragging.x = evt.pageX - dragging.elem.offsetLeft;
           dragging.y = evt.pageY - dragging.elem.offsetTop;
           query = [];
-          query[0] = data.getSchedules(dragging.id);
+          query[1] = [];
+          data.getSchedules(dragging.id, MouseEvent.mouse.setquery);
           return MouseEvent.mouse.dragTo(true);
         }
       }
     },
     dragUp: function(evt) {
-      var day, i, tmp, to, _i, _len, _ref;
+      var day, i, to, _i, _len, _ref;
       window.removeEventListener("mouseup", MouseEvent.mouse.dragUp);
       if (timer) {
         clearInterval(timer);
@@ -836,10 +854,9 @@ MouseEvent = (function() {
               }
               query[0].date = controller.getCurrent().date + "/" + i;
             } else if (to.tagName === "DL") {
-              query[1] = data.getSchedules(View.getId(to));
-              tmp = query[1].order;
-              query[1].order = query[0].order;
-              query[0].order = tmp;
+              query[1] = [];
+              data.getSchedules(View.getId(to), MouseEvent.mouse.replace);
+              return;
             }
           }
         }
@@ -857,6 +874,17 @@ MouseEvent = (function() {
       }
       dragging = null;
       return MouseEvent.mouse.dragTo(false);
+    },
+    setquery: function(q) {
+      return query[0] = q;
+    },
+    replace: function(q) {
+      var tmp;
+      query[1] = q;
+      tmp = query[1].order;
+      query[1].order = query[0].order;
+      query[0].order = tmp;
+      return data.setSchedules(query);
     },
     dragTo: function(bool) {
       var dragTo, _i, _len, _ref, _results;
@@ -901,6 +929,27 @@ MouseEvent = (function() {
             cls = _ref[_i];
             if (cls.indexOf("click") === 0) {
               Controller.click[cls.replace("click", "")](point);
+              return;
+            }
+          }
+          if (point.nodeName === "SECTION") {
+            return;
+          }
+          point = point.parentNode;
+        }
+      } catch (_error) {}
+    },
+    doubleclickEvent: function(evt) {
+      var cls, point, _i, _len, _ref;
+      MouseEvent.mouse.dragTo(false);
+      try {
+        point = MouseEvent.getPointer(evt);
+        while (!(point.nodeName === "BODY")) {
+          _ref = point.classList;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            cls = _ref[_i];
+            if (cls.indexOf("click") === 0) {
+              Controller.dblclick[cls.replace("click", "")](point);
               return;
             }
           }
@@ -1599,7 +1648,7 @@ plugins = ["PropertySetting", "Holiday", "Rokusei"];
 var View;
 
 View = (function() {
-  var calendar, form, nav, tasks;
+  var calendar, form, item, nav, tasks;
 
   form = [];
 
@@ -1608,6 +1657,8 @@ View = (function() {
   calendar = null;
 
   tasks = null;
+
+  item = null;
 
   function View() {
     nav = Dom.create(document.body, "nav");
@@ -1784,10 +1835,9 @@ View = (function() {
 
   View.prototype.form = {
     check: function(data) {
-      var flg, id, item;
+      var flg, id;
       flg = true;
       if (id = form.id.value) {
-        item = data.getSchedules(id);
         if ((form.title.value !== item.title) || (form.content.value !== item.content)) {
           flg = confirm("内容が変更中です。本当に閉じますか？");
         }
@@ -1802,19 +1852,31 @@ View = (function() {
       form.content.value = null;
       form.id.value = null;
       form.base.style.display = null;
+      item = null;
       try {
         Dom.get(document, " body > ul > .keep > section").item(0).style.display = null;
       } catch (_error) {}
       return View.calendarHeightChange();
     },
-    update: function(date, item) {
+    scheduleAdd: function(date) {
       form.base.style.display = "block";
       form.date.value = date;
-      form.title.value = item ? item.title : "";
-      form.content.value = item ? item.content : "";
-      form.id.value = item ? item.id : "";
       Dom.get(document, " body > ul > .keep > section").item(0).style.display = "none";
-      return View.calendarHeightChange();
+      return View.caluendarHeightChange();
+    },
+    scheduleUpdate: function(i) {
+      item = i;
+      form.base.style.display = "block";
+      if (typeof item.date === "strng") {
+        form.date.value = item.date;
+      } else {
+        form.date.value = item.date.getFullYear() + "/" + (item.date.getMonth() + 1) + "/" + item.date.getDate();
+      }
+      form.title.value = item.title;
+      form.content.value = item.content;
+      form.id.value = item.id;
+      Dom.get(document, " body > ul > .keep > section").item(0).style.display = "none";
+      return View.caluendarHeightChange();
     }
   };
 
