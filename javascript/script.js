@@ -103,13 +103,13 @@ Rokusei = (function() {
 
   Rokusei.prototype.setDate = function(date) {
     var calendar, child, cursor, i, target, _i, _ref;
-    calendar = Dom.get(document, "body > ul").item(0);
+    calendar = Dom.get("body > ul");
     for (i = _i = 0, _ref = calendar.childNodes.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
       target = calendar.childNodes[i].childNodes[0];
       cursor = (date.unixTime1stDay + i + this.dayOffset) % 12;
       target.style.borderLeft = "solid " + this.status[cursor].color + " .25em";
       target.style.paddingLeft = ".25em";
-      if (child = Dom.get(target, "span").item(0)) {
+      if (child = Dom.get("span", target)) {
         child.innerHTML = this.status[cursor].name;
       } else {
         child = Dom.create(target, "span", this.status[cursor].name);
@@ -119,7 +119,7 @@ Rokusei = (function() {
       child.style.fontWeight = "200";
       child.style.color = document.defaultView.getComputedStyle(target.parentNode, null).color;
     }
-    return Dom.get(document, "nav h1").item(0).innerHTML = date.year + "年 ( " + this.status[(date.year + this.yearOffset) % 12].name + " ) " + (date.month + 1) + "月 ( " + this.status[(date.month + this.monthOffset) % 12].name + " )";
+    return Dom.get("nav h1").innerHTML = date.year + "年 ( " + this.status[(date.year + this.yearOffset) % 12].name + " ) " + (date.month + 1) + "月 ( " + this.status[(date.month + this.monthOffset) % 12].name + " )";
   };
 
   return Rokusei;
