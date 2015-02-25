@@ -1737,7 +1737,7 @@ View = (function() {
     scheduleUpdate: function(i) {
       item = i;
       form.base.style.display = "block";
-      if (typeof item.date === "strng") {
+      if (typeof item.date === "string") {
         form.date.value = item.date;
       } else {
         form.date.value = item.date.getFullYear() + "/" + (item.date.getMonth() + 1) + "/" + item.date.getDate();
