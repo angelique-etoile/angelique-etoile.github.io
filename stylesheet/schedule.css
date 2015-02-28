@@ -11,6 +11,44 @@ body {
   color: #863;
   background-color: #fff;
 }
+body >header {
+  position: absolute;
+  top: 0;
+  right: 1em;
+  z-index: 1;
+}
+body >header >button {
+  background: #ffc0dd;
+  border-radius: 0.5em;
+}
+body >header >button:hover {
+  background: #fff;
+  color: #ff67ad;
+}
+body >header >button:first-of-type {
+  height: 2em;
+}
+body >header >button:not(:first-of-type) {
+  display: none;
+}
+body >header.keep>button {
+  display: block;
+}
+body >div {
+  display: -webkit-box;
+  height: 100%;
+}
+body >div >div {
+  -webkit-box-flex: 1;
+  display: -webkit-box;
+  height: 100%;
+  border: solid #000 2px;
+}
+body >div >div >div {
+  -webkit-box-flex: 1;
+  height: 100%;
+  border: solid #f00 2px;
+}
 body >nav {
   height: 2em;
   width: 100%;
@@ -159,9 +197,6 @@ body >ul >li {
 }
 body >ul >li:hover {
   overflow: visible;
-}
-body >ul >li >ul {
-  padding: 0.2em 0.4em 0.1em;
 }
 body >ul >li >ul >li {
   list-style: decimal inside;
@@ -550,6 +585,9 @@ body>ul>li>span:first-child {
 }
 .scheduleStatus3:not(option) {
   opacity: 0.35;
+}
+.scheduleStatus4:not(option) {
+  opacity: 0.2;
 }
 .scheduleTitle {
   cursor: pointer;

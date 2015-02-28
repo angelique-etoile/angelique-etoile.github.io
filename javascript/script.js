@@ -126,34 +126,63 @@ Rokusei = (function() {
 
 })();
 
-var apps, load, menu, plugins;
+var apps, load, menu, plugins, script, style;
 
 menu = null;
+
+script = [];
+
+style = [];
 
 apps = [
   {
     name: "スケジュール",
-    dir: "schedule",
-    "class": "Controller"
+    "class": "Controller",
+    libs: ["javascript/schedule/script.js"],
+    style: ["stylesheet/reset.css", "stylesheet/schedule.css"]
   }
 ];
 
 window.addEventListener("load", function() {
-  return load(apps[0].dir, apps[0]["class"]);
+  return load(apps[0]);
 });
 
-load = function(name, cls) {
-  var child, script;
-  while (document.body.lastChild !== menu) {
-    child = document.body.lastChild;
-    document.body.removeChild(child);
+load = function(app) {
+  var cnt, s, src, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _results;
+  for (_i = 0, _len = style.length; _i < _len; _i++) {
+    s = style[_i];
+    s.parentNode.removeChild(s);
   }
-  script = Dom.create(document.head, "script");
-  script.src = "javascript/" + name + "/script.js";
-  script.type = "text/javascript";
-  return script.onload = function() {
-    return Function("new " + cls + "( )")();
-  };
+  style = [];
+  _ref = app.style;
+  for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+    src = _ref[_j];
+    s = Dom.create(document.head, "link");
+    s.href = src;
+    s.rel = "stylesheet";
+    style.push(s);
+  }
+  for (_k = 0, _len2 = script.length; _k < _len2; _k++) {
+    s = script[_k];
+    s.parentNode.removeChild(s);
+  }
+  script = [];
+  cnt = 0;
+  _ref1 = app.libs;
+  _results = [];
+  for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
+    src = _ref1[_l];
+    s = Dom.create(document.head, "script");
+    s.src = src;
+    script.push(s);
+    _results.push(s.onload = function() {
+      cnt++;
+      if (cnt === script.length) {
+        return Function("new " + app["class"] + "( )")();
+      }
+    });
+  }
+  return _results;
 };
 
 plugins = ["PropertySetting", "Holiday", "Rokusei"];

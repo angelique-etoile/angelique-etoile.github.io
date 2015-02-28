@@ -239,7 +239,7 @@ Holiday = (function() {
   Holiday.prototype.setSchedules = function() {};
 
   Holiday.prototype.setHoliday = function() {
-    var calendar, day, target, _i, _len, _ref, _results;
+    var calendar, day, span, target, _i, _len, _ref, _results;
     calendar = Dom.get("body > ul");
     if (data.items) {
       _ref = data.items;
@@ -247,7 +247,9 @@ Holiday = (function() {
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         day = _ref[_i];
         target = calendar.childNodes[parseInt(day.start.date.split("-")[2]) - 1].querySelector("span");
-        Dom.create(target, "span", day.summary).classList.add("holidayName");
+        span = Dom.create(target, "span", day.summary);
+        span.classList.add("holidayName");
+        span.style.marginLeft = ".25em";
         _results.push(target.parentNode.classList.add("holiday"));
       }
       return _results;
@@ -265,7 +267,7 @@ Holiday = (function() {
 var Model;
 
 Model = (function() {
-  var configs, controller, db, getSchedulesLast, initialData, model, plugin, properties, schedules, view;
+  var configs, controller, db, initialData, model, plugin, properties, schedules, view;
 
   model = Model;
 
@@ -476,24 +478,6 @@ Model = (function() {
     };
   };
 
-  getSchedulesLast = function(index, q) {
-    var query, request, schedule, transaction;
-    transaction = db.transaction(["store"], "readonly");
-    schedule = transaction.objectStore("store");
-    request = schedule.index(index).openCursor(IDBKeyRange.lowerBound(0), "prev");
-    query = [];
-    query[0] = q;
-    return request.onsuccess = function() {
-      var order;
-      order = 0;
-      if (this.result) {
-        order = this.result.value.order;
-      }
-      query[0].order = order + 1;
-      return model.setSchedules(query);
-    };
-  };
-
   Model.prototype.getSchedules = function(id, callback, arg) {
     var request, schedule, transaction;
     if (id) {
@@ -509,30 +493,39 @@ Model = (function() {
   };
 
   Model.prototype.setSchedules = function(query) {
-    var d, q, request, schedule, transaction, _i, _len;
+    var request, schedule, transaction;
     transaction = db.transaction(["store"], "readwrite");
     schedule = transaction.objectStore("store");
-    for (_i = 0, _len = query.length; _i < _len; _i++) {
-      q = query[_i];
-      if ((typeof q.date === "string") && (d = q.date.split("/")) && (d.length === 3)) {
-        q.date = new Date(d[0], d[1] - 1, d[2]);
-      }
-      if (!q.parent) {
-        q.parent = null;
-      }
-      if (q.order) {
-        request = schedule.put(q);
-        request.onerror = function(evt) {
-          return alert("error");
+    request = schedule.index("order").openCursor(IDBKeyRange.lowerBound(0), "prev");
+    return request.onsuccess = (function(query) {
+      return function() {
+        var d, last, q, _i, _len;
+        if (this.result) {
+          last = this.result.value.order + 1;
+        } else {
+          last = 0;
+        }
+        for (_i = 0, _len = query.length; _i < _len; _i++) {
+          q = query[_i];
+          if ((typeof q.date === "string") && (d = q.date.split("/")) && (d.length === 3)) {
+            q.date = new Date(d[0], d[1] - 1, d[2]);
+          }
+          if (!q.parent) {
+            q.parent = null;
+          }
+          if (!q.order) {
+            q.order = last++;
+          }
+          request = schedule.put(q);
+          request.onerror = function(evt) {
+            return alert("error");
+          };
+        }
+        return transaction.oncomplete = function() {
+          return model.loadSchedules();
         };
-      } else {
-        getSchedulesLast("order", q);
-        return;
-      }
-    }
-    return transaction.oncomplete = function() {
-      return model.loadSchedules();
-    };
+      };
+    })(query);
   };
 
   Model.prototype.deleteSchedule = function(id) {
