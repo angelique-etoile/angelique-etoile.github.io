@@ -11,29 +11,6 @@ body {
   color: #863;
   background-color: #fff;
 }
-body >header {
-  position: absolute;
-  top: 0;
-  right: 1em;
-  z-index: 1;
-}
-body >header >button {
-  background: #ffc0dd;
-  border-radius: 0.5em;
-}
-body >header >button:hover {
-  background: #fff;
-  color: #ff67ad;
-}
-body >header >button:first-of-type {
-  height: 2em;
-}
-body >header >button:not(:first-of-type) {
-  display: none;
-}
-body >header.keep>button {
-  display: block;
-}
 body >div {
   display: -webkit-box;
   height: 100%;
@@ -50,12 +27,10 @@ body >div >div >div {
   border: solid #f00 2px;
 }
 body >nav {
-  height: 2em;
   width: 100%;
   background: #fff2f8;
   z-index: 3;
   line-height: 2em;
-  overflow: hidden;
   padding: 0 1em;
 }
 body >nav.keep {
@@ -76,12 +51,12 @@ body >nav >button {
 body >nav >button:nth-of-type(3) {
   margin-left: 1em;
 }
-body >nav >ul {
+body >nav >div>.windowConfig {
   display: flex;
   padding: 0.5em 0.7em 1em;
   overflow: auto;
 }
-body >nav >ul >li {
+body >nav >div>.windowConfig >li {
   min-width: 10em;
   max-width: 20em;
   margin: 1em auto;
@@ -89,13 +64,13 @@ body >nav >ul >li {
   -moz-flex: 1 1 1;
   padding: 0.5em 2em;
 }
-body >nav >ul >li:not(:first-of-type) {
+body >nav >div>.windowConfig >li:not(:first-of-type) {
   border-left: dashed 2px #ff67ad;
 }
-body >nav >ul >li >h4 {
+body >nav >div>.windowConfig >li >h4 {
   margin: 0 0 1em -0.5em;
 }
-body >nav >ul >li >input {
+body >nav >div>.windowConfig >li >input {
   height: 1em;
   width: 10em;
   float: left;
@@ -103,56 +78,59 @@ body >nav >ul >li >input {
   position: absolute;
   display: none;
 }
-body >nav >ul >li:first-of-type button {
+body >nav >div>.windowConfig >li:first-of-type button {
   display: inline;
 }
-body >nav >ul >li:nth-of-type(n+2) >button:nth-of-type(2) {
+body >nav >div>.windowConfig >li:nth-of-type(n+2) >button:nth-of-type(2) {
   clear: left;
 }
-body >nav >ul >li:nth-of-type(n+2) >button:nth-of-type(n+2) {
+body >nav >div>.windowConfig >li:nth-of-type(n+2) >button:nth-of-type(n+2) {
   margin-top: 3em;
 }
-body >nav >ul >li:nth-of-type(n+2) >ul>li {
+body >nav >div>.windowConfig >li:nth-of-type(n+2) >ul>li {
   position: relative;
 }
-body >nav >ul >li:nth-of-type(n+2) >ul>li >div {
+body >nav >div>.windowConfig >li:nth-of-type(n+2) >ul>li >div {
   display: none;
   position: relative;
   float: left;
 }
-body >nav >ul >li:nth-of-type(n+2) >ul>li >div >div {
+body >nav >div>.windowConfig >li:nth-of-type(n+2) >ul>li >div >div {
   position: absolute;
   width: 200px;
 }
-body >nav >ul >li:nth-of-type(n+2) >ul>li >div >div >button {
+body >nav >div>.windowConfig >li:nth-of-type(n+2) >ul>li >div >div >button {
   float: left;
 }
-body >nav >ul >li:nth-of-type(n+2) >ul>li >label {
+body >nav >div>.windowConfig >li:nth-of-type(n+2) >ul>li >label {
   float: left;
 }
-body >nav >ul >li:nth-of-type(n+2) >ul>li:hover>div {
+body >nav >div>.windowConfig >li:nth-of-type(n+2) >ul>li:hover>div {
   display: block;
 }
-body >nav >ul >li:nth-of-type(n+2) >ul>li:after {
+body >nav >div>.windowConfig >li:nth-of-type(n+2) >ul>li:after {
   content: "";
   display: block;
   clear: left;
 }
-body >nav >ul >li >input+button+button,
-body >nav >ul >li >input+button+button+button {
+body >nav >div>.windowConfig >li >input+button+button,
+body >nav >div>.windowConfig >li >input+button+button+button {
   display: none;
   float: left;
 }
-body >nav >ul input,
-body >nav >ul button {
+body >nav >div>.windowConfig input,
+body >nav >div>.windowConfig button {
   padding: 0.4em;
   border-radius: 0.5em;
   margin: 0.2em;
   box-sizing: content-box;
 }
-body >nav >ul button {
+body >nav >div>.windowConfig button {
   background: #ffcde4;
   display: block;
+}
+body >nav >div>.fileMenu dl {
+  margin: 1em;
 }
 body .startDay0 >li:nth-of-type(n+15):hover >section,
 body .startDay1 >li:nth-of-type(n+21):hover >section,

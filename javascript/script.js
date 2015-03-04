@@ -33,6 +33,23 @@ Dom = (function() {
     return child;
   };
 
+  Dom.input = function(parent, text, before) {
+    var child, label;
+    label = Dom.create(parent, "label", text);
+    child = Dom.create(label, "input", null, before);
+    child.type = "input";
+    return child;
+  };
+
+  Dom.checkbox = function(parent, text, before) {
+    var child, label;
+    label = Dom.create(parent, "label");
+    child = Dom.create(label, "input", null, before);
+    child.type = "checkbox";
+    label.innerHTML += text;
+    return child;
+  };
+
   Dom.get = function(name, parent) {
     return this.gets(name, parent).item(0);
   };
@@ -102,9 +119,9 @@ Rokusei = (function() {
   Rokusei.prototype.init = function() {};
 
   Rokusei.prototype.setDate = function(date) {
-    var calendar, child, cursor, i, target, _i, _ref;
+    var calendar, child, cursor, i, j, ref, target;
     calendar = Dom.get("body > ul");
-    for (i = _i = 0, _ref = calendar.childNodes.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+    for (i = j = 0, ref = calendar.childNodes.length - 1; 0 <= ref ? j <= ref : j >= ref; i = 0 <= ref ? ++j : --j) {
       target = calendar.childNodes[i].childNodes[0];
       cursor = (date.unixTime1stDay + i + this.dayOffset) % 12;
       target.style.borderLeft = "solid " + this.status[cursor].color + " .25em";
@@ -139,50 +156,76 @@ apps = [
     name: "スケジュール",
     "class": "Controller",
     libs: ["javascript/schedule/script.js"],
-    style: ["stylesheet/reset.css", "stylesheet/schedule.css"]
+    style: ["stylesheet/reset.css", "stylesheet/common.css", "stylesheet/schedule.css"]
+  }, {
+    name: "一覧",
+    "class": "Controller",
+    libs: ["javascript/mindmap/script.js"],
+    style: ["stylesheet/reset.css", "stylesheet/common.css", "stylesheet/mindmap.css"]
   }
 ];
 
 window.addEventListener("load", function() {
-  return load(apps[0]);
+  var i, j, ref, results;
+  menu = Dom.create(document.body, "header");
+  Dom.button(menu, "more").addEventListener("click", function() {
+    return menu.classList.toggle("keep");
+  });
+  load(apps[0]);
+  results = [];
+  for (i = j = 0, ref = apps.length - 1; 0 <= ref ? j <= ref : j >= ref; i = 0 <= ref ? ++j : --j) {
+    results.push(Dom.button(menu, apps[i].name).addEventListener("click", (function(i) {
+      return function() {
+        return load(apps[i]);
+      };
+    })(i)));
+  }
+  return results;
 });
 
 load = function(app) {
-  var cnt, s, src, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _results;
-  for (_i = 0, _len = style.length; _i < _len; _i++) {
-    s = style[_i];
+  var child, cnt, j, k, l, len, len1, len2, len3, m, ref, ref1, results, s, src;
+  if (menu.classList.contains("keep")) {
+    menu.classList.toggle("keep");
+  }
+  while (document.body.lastChild !== menu) {
+    child = document.body.lastChild;
+    document.body.removeChild(child);
+  }
+  for (j = 0, len = style.length; j < len; j++) {
+    s = style[j];
     s.parentNode.removeChild(s);
   }
   style = [];
-  _ref = app.style;
-  for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-    src = _ref[_j];
+  ref = app.style;
+  for (k = 0, len1 = ref.length; k < len1; k++) {
+    src = ref[k];
     s = Dom.create(document.head, "link");
     s.href = src;
     s.rel = "stylesheet";
     style.push(s);
   }
-  for (_k = 0, _len2 = script.length; _k < _len2; _k++) {
-    s = script[_k];
+  for (l = 0, len2 = script.length; l < len2; l++) {
+    s = script[l];
     s.parentNode.removeChild(s);
   }
   script = [];
   cnt = 0;
-  _ref1 = app.libs;
-  _results = [];
-  for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
-    src = _ref1[_l];
+  ref1 = app.libs;
+  results = [];
+  for (m = 0, len3 = ref1.length; m < len3; m++) {
+    src = ref1[m];
     s = Dom.create(document.head, "script");
     s.src = src;
     script.push(s);
-    _results.push(s.onload = function() {
+    results.push(s.onload = function() {
       cnt++;
       if (cnt === script.length) {
         return Function("new " + app["class"] + "( )")();
       }
     });
   }
-  return _results;
+  return results;
 };
 
-plugins = ["PropertySetting", "Holiday", "Rokusei"];
+plugins = ["PropertySetting", "FileInOut", "Holiday", "Rokusei"];
