@@ -508,9 +508,13 @@ View = (function() {
     results = [];
     for (j = 0, len = ref.length; j < len; j++) {
       project = ref[j];
-      btn = Dom.button(wrap, project.name);
-      btn.classList.add("clickProjectSelector");
-      results.push(btn.setAttribute("project-selector", project.id));
+      if ((!project["delete"]) && (!project.finish)) {
+        btn = Dom.button(wrap, project.name);
+        btn.classList.add("clickProjectSelector");
+        results.push(btn.setAttribute("project-selector", project.id));
+      } else {
+        results.push(void 0);
+      }
     }
     return results;
   };
