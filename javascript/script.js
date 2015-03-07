@@ -10,13 +10,17 @@ Dom = (function() {
     return child;
   };
 
-  Dom.label = function(parent, tag, text) {
-    var dd, dl, dt, label;
+  Dom.label = function(parent, tag, text, type) {
+    var child, dd, dl, dt, label;
     label = Dom.create(parent, "label");
     dl = Dom.create(label, "dl");
     dt = Dom.create(dl, "dt", text);
     dd = Dom.create(dl, "dd");
-    return Dom.create(dd, tag);
+    child = Dom.create(dd, tag);
+    if (type) {
+      child.type = type;
+    }
+    return child;
   };
 
   Dom.create = function(parent, tag, html, before) {
@@ -162,6 +166,11 @@ apps = [
     "class": "Controller",
     libs: ["javascript/mindmap/script.js"],
     style: ["stylesheet/reset.css", "stylesheet/common.css", "stylesheet/mindmap.css"]
+  }, {
+    name: "姓名判断",
+    "class": "Controller",
+    libs: ["http://192.168.0.16:8000/javascript/seimei/script.js"],
+    style: ["stylesheet/reset.css", "stylesheet/common.css", "http://192.168.0.16:8000/stylesheet/seimei.css"]
   }
 ];
 

@@ -603,7 +603,7 @@ Model = (function() {
                 if ((d = q.date.split("/")) && (d.length === 3)) {
                   q.date = new Date(d[0], d[1] - 1, d[2]);
                 }
-              } else {
+              } else if (isNaN(q.date)) {
                 q.date = new Date(q.date);
                 if (q.date.toString() === "Invalid Date") {
                   q.date = "";

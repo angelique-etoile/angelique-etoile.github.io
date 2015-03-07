@@ -385,10 +385,8 @@ MouseEvent = (function() {
           data.getSchedules(childId, MouseEvent.mouse.setParent, parseInt(toId));
         } else if (to.classList.contains("clickProjectSelector")) {
           if (projectId = to.getAttribute("project-selector")) {
-            console.log(projectId);
             for (j = 0, len1 = children.length; j < len1; j++) {
               c = children[j];
-              console.log("lsdkjhskdfhsdkf");
               query = [];
               data.getSchedules(c, MouseEvent.mouse.setProject, [children, projectId]);
             }
@@ -430,10 +428,8 @@ MouseEvent = (function() {
     },
     doubleclickEvent: function(evt) {
       var id, point;
-      console.log("kjkshdfkjhdskjfhjkdskhkhk");
       point = MouseEvent.getPointer(evt);
       if (id = point.parentNode.getAttribute("task-id")) {
-        console.log("kjkhkhk");
         return data.getSchedules(id, data.statusInclement);
       }
     }
