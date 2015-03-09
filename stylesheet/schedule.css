@@ -332,6 +332,8 @@ body >form label>dl {
 }
 body >form label>dl >dt {
   width: 6em;
+  padding: 0.2em 0.5em;
+  text-align: right;
 }
 body >form label>dl >dd {
   box-flex: 1;
@@ -343,15 +345,22 @@ body >form label:nth-of-type(3)>dl {
   margin-bottom: 0;
 }
 body >form label:nth-of-type(3)>dl >dt {
-  margin-bottom: 2.5em;
+  margin-bottom: 5em;
 }
 body >form button {
   position: absolute;
+}
+body >form button:nth-of-type(1),
+body >form button:nth-of-type(2) {
   width: 2.75em;
   bottom: 2em;
 }
 body >form button:nth-of-type(2) {
   left: 5.25em;
+}
+body >form button:nth-of-type(3) {
+  width: 6em;
+  bottom: 4.5em;
 }
 body >form textarea,
 body >form input {
@@ -362,7 +371,7 @@ body >form input {
   width: 100%;
 }
 body >form textarea {
-  height: 5em;
+  height: 7em;
 }
 body section>ul {
   width: 100%;
@@ -377,6 +386,160 @@ body section>ul >li >dl>dd select {
   background: transparent;
   color: inherit;
   border: none;
+}
+body .dragging .node span {
+  display: none;
+}
+body .dragging .node .optionpanel {
+  display: none;
+}
+body .mindmap {
+  display: none;
+  position: fixed;
+  top: 2em;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  background: #ffd9eb;
+  text-align: center;
+  white-space: nowrap;
+}
+body .mindmap:after {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  height: 100%;
+}
+body .mindmap .btn-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+body .mindmap .btn-wrapper button {
+  display: block;
+  background: #fff;
+  border: 0.1em #ddd solid;
+  border-radius: 0.5em;
+  color: #000;
+  opacity: 0.4;
+  padding: 0.5em;
+  width: 12em;
+  margin: 0.4em;
+}
+body .mindmap .btn-wrapper button:hover {
+  opacity: 0.8;
+}
+body .mindmap .node {
+  position: relative;
+  display: inline-block;
+  height: 1.2em;
+  line-height: 1;
+  padding: 0.1em 0.5em;
+  margin: 0.2em 0;
+  background-color: #fff;
+  border-radius: 0.3em;
+  cursor: pointer;
+}
+body .mindmap .node span {
+  display: none;
+}
+body .mindmap .node:hover span {
+  display: block;
+  position: absolute;
+  top: -2em;
+  left: 3em;
+  opacity: 1;
+  background: #ff3a95;
+  color: #ffcde4;
+  padding: 0.4em 1em;
+  border-radius: 0.3em;
+}
+body .mindmap .node:hover span:before {
+  display: block;
+  position: absolute;
+  content: "";
+  height: 0;
+  width: 0;
+  top: 1.4em;
+  left: 0;
+  border-style: solid;
+  border-width: 1em 1em 1em 0.4em;
+  border-color: #ff3a95 transparent transparent transparent;
+}
+body .mindmap .optionpanel {
+  position: absolute;
+  top: 0;
+  left: 80%;
+  background: #ffe6f1;
+  box-shadow: 0 0 1em #ff0d7d;
+  padding: 0.3em;
+  z-index: 3;
+  border-radius: 0.2em;
+}
+body .mindmap .optionpanel button,
+body .mindmap .optionpanel select {
+  margin: 0 0.2em;
+  background-color: #ffcde4;
+  color: #ff3a95;
+  border: none;
+  border-radius: 0.3em;
+  min-width: 1.2em;
+  line-height: 1.2;
+}
+body .mindmap .optionpanel button:hover,
+body .mindmap .optionpanel select:hover {
+  background-color: #ff3a95;
+  color: #ffcde4;
+}
+body .mindmap .children {
+  position: relative;
+  list-style: none;
+  text-align: left;
+  padding: 0 0 0 0.5em;
+  display: inline-block;
+  vertical-align: middle;
+}
+body .mindmap .children:before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 0.5em;
+  border-top: 0.1em solid rgba(0,0,0,0.533);
+}
+body .mindmap .children__item {
+  position: relative;
+  padding: 0 0 0 0.4em;
+  border-left: 0.1em solid rgba(0,0,0,0.533);
+}
+body .mindmap .children__item:before {
+  content: '';
+  width: 0.5em;
+  border-top: 0.1em solid rgba(0,0,0,0.533);
+  position: absolute;
+  top: 50%;
+  left: 0;
+}
+body .mindmap .children__item:first-child,
+body .mindmap .children__item:last-child {
+  border-left: 0.1em solid transparent;
+}
+body .mindmap .children__item:first-child:before,
+body .mindmap .children__item:last-child:before {
+  border-left: 0.1em solid rgba(0,0,0,0.533);
+  left: -0.1em;
+}
+body .mindmap .children__item:first-child:not(:last-child):before {
+  bottom: 0;
+  border-radius: 0.5em 0 0 0;
+}
+body .mindmap .children__item:last-child:not(:first-child):before {
+  top: 0;
+  bottom: 50%;
+  border-top: none;
+  border-bottom: 0.1em solid rgba(0,0,0,0.533);
+  border-radius: 0 0 0 0.5em;
 }
 .startDay0:before,
 .startDay1:before,
@@ -483,7 +646,7 @@ body>ul>li>span:first-child {
   background-color: #ff67ad;
   border: solid 0.5em #ffdfee;
   color: #ffdfee;
-  z-index: 10000;
+  z-index: 12;
   text-align: center;
   font-size: 1.2em;
 }

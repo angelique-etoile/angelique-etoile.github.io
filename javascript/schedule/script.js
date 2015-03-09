@@ -16,16 +16,16 @@ Controller = (function() {
   Controller.days = ["日", "月", "火", "水", "木", "金", "土"];
 
   function Controller() {
-    var mouse;
     current = this.getYearMonth(0);
     view = new View();
     data = new Model(view, this);
-    mouse = new MouseEvent(data, this);
     controller = this;
   }
 
   Controller.prototype.init = function() {
-    plugin = new Plugins(data);
+    var mouse;
+    plugin = new Plugins(data, this);
+    mouse = new MouseEvent(data, this, plugin);
     return this.setCurrent(0);
   };
 
@@ -154,15 +154,18 @@ Controller = (function() {
     ScheduleClose: function(target) {
       return target.parentNode.parentNode.classList.remove("keep");
     },
-    ScheduleSubmit: function(target) {
-      if (view.getForm("id").value) {
-        return data.getSchedules(view.getForm("id").value, this.ScheduleSubmitCallback);
+    ScheduleSubmit: function(target, flgContinue) {
+      if (view.getForm().id.value) {
+        return data.getSchedules(view.getForm().id.value, this.ScheduleSubmitCallback, flgContinue);
       } else {
-        return this.ScheduleSubmitCallback();
+        return this.ScheduleSubmitCallback(null, flgContinue);
       }
     },
-    ScheduleSubmitCallback: function(old) {
-      var query;
+    ScheduleSubmitContinue: function(target) {
+      return this.ScheduleSubmit(target, true);
+    },
+    ScheduleSubmitCallback: function(old, flgContinue) {
+      var i, item, key, len, query, ref, ref1, value;
       query = [];
       if (old) {
         query[0] = old;
@@ -170,18 +173,44 @@ Controller = (function() {
         query[0] = [];
         query[0].post_date = new Date();
       }
-      query[0].title = view.getForm("title").value;
-      query[0].date = view.getForm("date").value;
-      query[0].content = view.getForm("content").value;
+      ref = view.getForm();
+      for (key in ref) {
+        value = ref[key];
+        if (isNaN(parseInt(value.value))) {
+          query[0][key] = value.value;
+        } else {
+          query[0][key] = parseInt(value.value);
+        }
+        if ((key === "id") && (value.value === "")) {
+          delete query[0]["id"];
+        }
+      }
       query[0].last_update = new Date();
       data.setSchedules(query);
-      return view.form.close();
+      view.form.close();
+      if (flgContinue) {
+        if (query[0].date) {
+          return view.form.scheduleAdd(query[0].date);
+        } else {
+          item = [];
+          ref1 = ["date", "parent", "project"];
+          for (i = 0, len = ref1.length; i < len; i++) {
+            key = ref1[i];
+            item[key] = query[0][key];
+          }
+          return view.form.scheduleUpdate(item);
+        }
+      }
     },
     ScheduleCancel: function(target) {
       if (view.form.check(data)) {
         return view.form.close();
       }
     }
+  };
+
+  Controller.prototype.scheduleAdd = function(item) {
+    return view.form.scheduleUpdate(item);
   };
 
   Controller.dblclick = {
@@ -371,9 +400,9 @@ Model = (function() {
 
   Model.prototype.dbName = "piaccoCalendar";
 
-  Model.prototype.iDB = window.indexedDB || window.mozIndexedDB || window.msIndexedDB || window.webkitIndexDB;
+  Model.prototype.iDB = window.indexedDB;
 
-  Model.prototype.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
+  Model.prototype.IDBKeyRange = window.IDBKeyRange;
 
   initialData = [
     {
@@ -508,24 +537,28 @@ Model = (function() {
     };
   }
 
-  Model.prototype.loadSchedules = function() {
-    var key, lower, month, r, range, request, schedule, transaction, upper, year;
-    year = controller.getCurrent().year;
-    month = controller.getCurrent().month;
-    schedules = [];
+  Model.prototype.loadSchedules = function(arg, callback) {
+    var index, key, month, r, range, request, schedule, transaction, year;
     transaction = db.transaction(["store"], "readonly");
     schedule = transaction.objectStore("store");
-    range = [];
-    lower = new Date(year, month, 1);
-    upper = new Date(year, month + 1, 0);
-    range.someday = IDBKeyRange.only("");
-    range.year = IDBKeyRange.only(year.toString());
-    range.month = IDBKeyRange.only(year + "/" + parseInt(month + 1));
-    range.date = IDBKeyRange.bound(lower, upper);
+    if (!arg) {
+      range = [];
+      index = "date";
+      year = controller.getCurrent().year;
+      month = controller.getCurrent().month;
+      range.someday = IDBKeyRange.only("");
+      range.year = IDBKeyRange.only(year.toString());
+      range.month = IDBKeyRange.only(year + "/" + parseInt(month + 1));
+      range.date = IDBKeyRange.bound(new Date(year, month, 1), new Date(year, month + 1, 0));
+    } else {
+      range = [];
+      index = arg.index;
+      range[arg.index] = IDBKeyRange.only(arg.key);
+    }
     for (key in range) {
       r = range[key];
       schedules[key] = [];
-      request = schedule.index("date").openCursor(r);
+      request = schedule.index(index).openCursor(r);
       request.onsuccess = (function(key) {
         return function() {
           var cursor;
@@ -549,7 +582,11 @@ Model = (function() {
           }
         });
       }
-      return controller.setSchedules();
+      if (!callback) {
+        return controller.setSchedules();
+      } else {
+        return callback(arg.key);
+      }
     };
     return request.onerror = function(evt) {
       return alert("error");
@@ -570,7 +607,7 @@ Model = (function() {
     }
   };
 
-  Model.prototype.setSchedules = function(query) {
+  Model.prototype.setSchedules = function(query, arg, callback) {
     var request, schedule, transaction;
     transaction = db.transaction(["store"], "readwrite");
     schedule = transaction.objectStore("store");
@@ -627,7 +664,7 @@ Model = (function() {
           }
         }
         return transaction.oncomplete = function() {
-          return model.loadSchedules();
+          return model.loadSchedules(arg, callback);
         };
       };
     })(query);
@@ -684,7 +721,7 @@ Model = (function() {
     };
   };
 
-  Model.prototype.loadProperties = function() {
+  Model.prototype.loadProperties = function(callback) {
     var j, k, len, len1, request, store, t, target, transaction;
     target = [];
     properties = [];
@@ -708,7 +745,8 @@ Model = (function() {
       };
     }
     transaction.oncomplete = function() {
-      return controller.setProperties();
+      controller.setProperties();
+      return callback;
     };
     return request.onerror = function(evt) {
       return alert("error");
@@ -731,7 +769,7 @@ Model = (function() {
       };
     }
     return transaction.oncomplete = function() {
-      return model.loadProperties(null, null, callback);
+      return model.loadProperties(callback);
     };
   };
 
@@ -801,10 +839,16 @@ Model = (function() {
     array = [];
     request = store.openCursor();
     request.onsuccess = function() {
-      var cursor;
+      var a, cursor, key, ref, value;
       cursor = this.result;
       if (cursor) {
-        array.push(cursor.value);
+        a = {};
+        ref = cursor.value;
+        for (key in ref) {
+          value = ref[key];
+          a[key] = value;
+        }
+        array.push(a);
         return cursor["continue"]();
       }
     };
@@ -830,7 +874,7 @@ Model = (function() {
 var MouseEvent;
 
 MouseEvent = (function() {
-  var controller, data, dragging, query, timer;
+  var controller, data, dragging, plugin, query, timer;
 
   controller = null;
 
@@ -842,9 +886,12 @@ MouseEvent = (function() {
 
   timer = null;
 
-  function MouseEvent(d, c) {
+  plugin = null;
+
+  function MouseEvent(d, c, p) {
     data = d;
     controller = c;
+    plugin = p;
     window.onmousedown = function(evt) {
       return MouseEvent.mouse.setEvent(evt);
     };
@@ -887,8 +934,7 @@ MouseEvent = (function() {
       dragging.startY = evt.pageY;
       dragging.moveX = 0;
       dragging.moveY = 0;
-      point = MouseEvent.getPointer(evt);
-      if (point.classList.contains("draggable")) {
+      if (point = MouseEvent.getPointer(evt, ".draggable")) {
         dragging.elem = point.cloneNode(true);
         dragging.id = View.getId(point);
         dragging.elem.classList.add("dragging");
@@ -909,11 +955,7 @@ MouseEvent = (function() {
     },
     move: function(evt) {
       dragging.moveX = dragging.startX - evt.pageX;
-      dragging.moveY = dragging.startY - evt.pageY;
-      if (window.navigator.userAgent.toLowerCase().indexOf("firefox")) {
-        window.getSelection().removeAllRanges();
-      }
-      return evt.returnValue = false;
+      return dragging.moveY = dragging.startY - evt.pageY;
     },
     leave: function() {
       dragging.elem.parentNode.removeChild(dragging.elem);
@@ -933,7 +975,7 @@ MouseEvent = (function() {
             dragging.hover = mouseOver;
             mouseOver.style.opacity = "1";
             if (timer === null) {
-              return timer = window.setInterval(function() {
+              timer = window.setInterval(function() {
                 if (mouseOver.classList.contains("dragToPrevMonth")) {
                   return controller.setDate(-1);
                 } else if (mouseOver.classList.contains("dragToNextMonth")) {
@@ -946,7 +988,7 @@ MouseEvent = (function() {
             dragging.hover = null;
             if (timer) {
               clearInterval(timer);
-              return timer = null;
+              timer = null;
             }
           }
         } else {
@@ -959,9 +1001,13 @@ MouseEvent = (function() {
           query = [];
           query[1] = [];
           data.getSchedules(dragging.id, MouseEvent.mouse.setquery);
-          return MouseEvent.mouse.dragTo(true);
+          MouseEvent.mouse.dragTo(true);
         }
       }
+      if (window.navigator.userAgent.toLowerCase().indexOf("firefox")) {
+        window.getSelection().removeAllRanges();
+      }
+      return evt.returnValue = false;
     },
     dragUp: function(evt) {
       var day, i, j, len, ref, to;
@@ -1002,18 +1048,19 @@ MouseEvent = (function() {
               return;
             }
           }
-        }
-        data.setSchedules(query);
-        ref = Dom.get("body > ul").childNodes;
-        for (i = j = 0, len = ref.length; j < len; i = ++j) {
-          day = ref[i];
-          if (day.classList.contains("keep")) {
-            day.classList.remove("keep");
+          data.setSchedules(query);
+          ref = Dom.get("body > ul").childNodes;
+          for (i = j = 0, len = ref.length; j < len; i = ++j) {
+            day = ref[i];
+            if (day.classList.contains("keep")) {
+              day.classList.remove("keep");
+            }
+            if ((query[0].date instanceof Date) && (i === (query[0].date.getDate() - 1))) {
+              day.classList.add("keep");
+            }
           }
-          if ((query[0].date instanceof Date) && (i === (query[0].date.getDate() - 1))) {
-            day.classList.add("keep");
-          }
         }
+        plugin.dragUp(evt, dragging);
       }
       dragging = null;
       return MouseEvent.mouse.dragTo(false);
@@ -1118,7 +1165,7 @@ Plugins = (function() {
 
   aryPlugins = [];
 
-  function Plugins(data) {
+  function Plugins(data, controller) {
     var i, j, len, len1, plugin;
     for (i = 0, len = plugins.length; i < len; i++) {
       plugin = plugins[i];
@@ -1126,7 +1173,7 @@ Plugins = (function() {
     }
     for (j = 0, len1 = aryPlugins.length; j < len1; j++) {
       plugin = aryPlugins[j];
-      plugin.init(data);
+      plugin.init(data, controller);
     }
   }
 
@@ -1178,76 +1225,431 @@ Plugins = (function() {
     return results;
   };
 
-  Plugins.prototype.mouse = {
-    clickEvent: function(evt) {
-      var i, len, plugin, results;
-      results = [];
-      for (i = 0, len = aryPlugins.length; i < len; i++) {
-        plugin = aryPlugins[i];
-        try {
-          results.push(plugin.mouse.clickEvent(evt));
-        } catch (_error) {}
-      }
-      return results;
-    },
-    swipeEvent: function(evt) {
-      var i, len, plugin, results;
-      results = [];
-      for (i = 0, len = aryPlugins.length; i < len; i++) {
-        plugin = aryPlugins[i];
-        try {
-          results.push(plugin.mouse.swipeEvent(evt));
-        } catch (_error) {}
-      }
-      return results;
-    },
-    dragUp: function(evt) {
-      var i, len, plugin, results;
-      results = [];
-      for (i = 0, len = aryPlugins.length; i < len; i++) {
-        plugin = aryPlugins[i];
-        try {
-          results.push(plugin.mouse.dragUp(evt));
-        } catch (_error) {}
-      }
-      return results;
-    },
-    dragMove: function(evt) {
-      var i, len, plugin, results;
-      results = [];
-      for (i = 0, len = aryPlugins.length; i < len; i++) {
-        plugin = aryPlugins[i];
-        try {
-          results.push(plugin.mouse.dragMove(evt));
-        } catch (_error) {}
-      }
-      return results;
-    },
-    dragDown: function(evt) {
-      var i, len, plugin, results;
-      results = [];
-      for (i = 0, len = aryPlugins.length; i < len; i++) {
-        plugin = aryPlugins[i];
-        try {
-          results.push(plugin.mouse.dragDown(evt));
-        } catch (_error) {}
-      }
-      return results;
-    },
-    dragTo: function(evt) {
-      var i, len, plugin, results;
-      results = [];
-      for (i = 0, len = aryPlugins.length; i < len; i++) {
-        plugin = aryPlugins[i];
-        try {
-          results.push(plugin.mouse.dragTo(evt));
-        } catch (_error) {}
-      }
-      return results;
+  Plugins.prototype.clickEvent = function(evt) {
+    var i, len, plugin, results;
+    results = [];
+    for (i = 0, len = aryPlugins.length; i < len; i++) {
+      plugin = aryPlugins[i];
+      try {
+        results.push(plugin.clickEvent(evt));
+      } catch (_error) {}
     }
+    return results;
+  };
+
+  Plugins.prototype.swipeEvent = function(evt) {
+    var i, len, plugin, results;
+    results = [];
+    for (i = 0, len = aryPlugins.length; i < len; i++) {
+      plugin = aryPlugins[i];
+      try {
+        results.push(plugin.swipeEvent(evt));
+      } catch (_error) {}
+    }
+    return results;
+  };
+
+  Plugins.prototype.dragUp = function(evt, dragging) {
+    var i, len, plugin, results;
+    results = [];
+    for (i = 0, len = aryPlugins.length; i < len; i++) {
+      plugin = aryPlugins[i];
+      try {
+        results.push(plugin.dragUp(evt, dragging));
+      } catch (_error) {}
+    }
+    return results;
+  };
+
+  Plugins.prototype.dragMove = function(evt) {
+    var i, len, plugin, results;
+    results = [];
+    for (i = 0, len = aryPlugins.length; i < len; i++) {
+      plugin = aryPlugins[i];
+      try {
+        results.push(plugin.dragMove(evt));
+      } catch (_error) {}
+    }
+    return results;
+  };
+
+  Plugins.prototype.dragDown = function(evt) {
+    var i, len, plugin, results;
+    results = [];
+    for (i = 0, len = aryPlugins.length; i < len; i++) {
+      plugin = aryPlugins[i];
+      try {
+        results.push(plugin.dragDown(evt));
+      } catch (_error) {}
+    }
+    return results;
+  };
+
+  Plugins.prototype.dragTo = function(evt) {
+    var i, len, plugin, results;
+    results = [];
+    for (i = 0, len = aryPlugins.length; i < len; i++) {
+      plugin = aryPlugins[i];
+      try {
+        results.push(plugin.dragTo(evt));
+      } catch (_error) {}
+    }
+    return results;
   };
 
   return Plugins;
+
+})();
+
+var Project;
+
+Project = (function() {
+  var controller, current, data, item, map, nav, project, query, setChild;
+
+  project = null;
+
+  controller = null;
+
+  data = null;
+
+  nav = null;
+
+  map = null;
+
+  item = null;
+
+  query = null;
+
+  current = 1;
+
+  function Project() {
+    var wrap;
+    project = this;
+    map = Dom.create(document.body, "div");
+    map.classList.add("mindmap");
+    wrap = Dom.create(map, "nav");
+    wrap.classList.add("btn-wrapper");
+    Dom.button(Dom.get("nav"), "プロジェクト", Dom.get(".menu")).addEventListener("click", function() {
+      if (Dom.get(".mindmap").style.display === "block") {
+        return Dom.get(".mindmap").style.display = null;
+      } else {
+        return Dom.get(".mindmap").style.display = "block";
+      }
+    });
+  }
+
+  Project.prototype.init = function(d, c) {
+    data = d;
+    return controller = c;
+  };
+
+  Project.prototype.resetParent = function(children) {
+    var child, j, k, len, len1, tmp;
+    tmp = [];
+    for (j = 0, len = children.length; j < len; j++) {
+      child = children[j];
+      if (child) {
+        if (confirm(child.title + "の親タスク情報のみを削除します")) {
+          tmp.push(child);
+        }
+      }
+    }
+    for (k = 0, len1 = tmp.length; k < len1; k++) {
+      child = tmp[k];
+      if (child) {
+        child.parent = null;
+      }
+    }
+    if (tmp.length > 0) {
+      return data.setSchedules(tmp);
+    }
+  };
+
+  Project.prototype.setProperties = function() {
+    var btn, child, j, k, len, len1, pj, ref, ref1, results, wrap;
+    wrap = Dom.get(".btn-wrapper");
+    ref = Dom.gets("button", wrap);
+    for (j = 0, len = ref.length; j < len; j++) {
+      child = ref[j];
+      wrap.removeChild(child);
+    }
+    ref1 = data.getProperties().project;
+    results = [];
+    for (k = 0, len1 = ref1.length; k < len1; k++) {
+      pj = ref1[k];
+      if (pj && (!pj["delete"]) && (!pj.finish)) {
+        btn = Dom.button(wrap, pj.name);
+        btn.classList.add("clickProjectSelector");
+        btn.setAttribute("project-selector", pj.id);
+        results.push(btn.addEventListener("click", function() {
+          var projectId;
+          projectId = parseInt(this.getAttribute("project-selector"));
+          return data.loadSchedules({
+            index: "project",
+            key: projectId
+          }, project.setProject);
+        }));
+      } else {
+        results.push(void 0);
+      }
+    }
+    return results;
+  };
+
+  Project.getId = function(elem) {
+    var cls, j, len, ref;
+    while (elem.nodeName !== "BODY") {
+      ref = elem.classList;
+      for (j = 0, len = ref.length; j < len; j++) {
+        cls = ref[j];
+        if (cls.indexOf("id") === 0) {
+          return cls.match(/\d.*/g);
+        }
+      }
+      elem = elem.parentNode;
+    }
+    return false;
+  };
+
+  Project.prototype.setSchedules = function() {
+    return data.loadSchedules({
+      index: "project",
+      key: current
+    }, project.setProject);
+  };
+
+  Project.prototype.setProject = function(projectId) {
+    var c, children, flg, i, j, k, l, len, len1, len2, len3, len4, list, m, n, name, option, p, properties, ref, ref1, ref2, result, results, schedules, task, title, wrap;
+    current = projectId;
+    schedules = data.getSchedules().project;
+    properties = data.getProperties();
+    children = [];
+    if (wrap = Dom.get("div", map)) {
+      map.removeChild(wrap);
+    }
+    if (list = Dom.get("ol", map)) {
+      map.removeChild(list);
+    }
+    wrap = Dom.create(map, "div");
+    wrap.classList.add("node");
+    ref = properties.project;
+    for (j = 0, len = ref.length; j < len; j++) {
+      p = ref[j];
+      if (p && p.id === parseInt(projectId)) {
+        name = p.name;
+      }
+    }
+    title = Dom.create(wrap, "div", name);
+    title.classList.add("node__text");
+    p = Dom.create(map, "ol");
+    p.classList.add("children");
+    option = document.createElement("div");
+    option.classList.add("optionpanel");
+    wrap.addEventListener("mouseover", function() {
+      return this.appendChild(option);
+    });
+    wrap.addEventListener("mouseleave", function() {
+      return this.removeChild(option);
+    });
+    Dom.button(option, "+").addEventListener("click", function() {
+      item = {
+        date: "",
+        project: current
+      };
+      return controller.scheduleAdd(item);
+    });
+    for (k = 0, len1 = schedules.length; k < len1; k++) {
+      result = schedules[k];
+      if (result) {
+        if (result.parent) {
+          children.push(result);
+        } else {
+          setChild(Dom.get("body>div>ol"), result);
+        }
+      }
+    }
+    flg = true;
+    while (flg) {
+      flg = false;
+      ref1 = map.getElementsByTagName("ol");
+      for (l = 0, len2 = ref1.length; l < len2; l++) {
+        task = ref1[l];
+        for (i = m = 0, len3 = children.length; m < len3; i = ++m) {
+          c = children[i];
+          if (c && (task.parentNode.getAttribute("task-id")) === (c.parent.toString())) {
+            setChild(task, c);
+            flg = true;
+            delete children[i];
+          }
+        }
+      }
+    }
+    project.resetParent(children);
+    ref2 = Dom.gets("ol");
+    results = [];
+    for (n = 0, len4 = ref2.length; n < len4; n++) {
+      list = ref2[n];
+      if (list.hasChildNodes() === false) {
+        results.push(list.parentNode.removeChild(list));
+      } else {
+        results.push(void 0);
+      }
+    }
+    return results;
+  };
+
+  setChild = function(parent, task) {
+    var key, list, op, option, properties, property, ref, select, str, strProperty, text, wrap;
+    item = Dom.create(parent, "li");
+    item.classList.add("children__item", "draggable", "id" + task.id);
+    item.setAttribute("task-id", task.id);
+    option = document.createElement("div");
+    option.classList.add("optionpanel");
+    Dom.button(option, "+").addEventListener("click", function() {
+      var parentId;
+      parentId = parseInt(this.parentNode.parentNode.parentNode.parentNode.getAttribute("task-id"));
+      item = {
+        date: "",
+        parent: parentId,
+        project: current
+      };
+      return controller.scheduleAdd(item);
+    });
+    Dom.button(option, "↑").addEventListener("click", function() {
+      var a, aData, aId, b, bData, bId;
+      a = this.parentNode.parentNode.parentNode.parentNode;
+      aId = parseInt(a.getAttribute("task-id"));
+      if (b = a.previousSibling) {
+        bId = parseInt(b.getAttribute("task-id"));
+        query = [];
+        aData = data.getSchedules(aId, project.replace);
+        return bData = data.getSchedules(bId, project.replace);
+      }
+    });
+    Dom.button(option, "↓").addEventListener("click", function() {
+      var a, aData, aId, b, bData, bId;
+      a = this.parentNode.parentNode.parentNode.parentNode;
+      aId = parseInt(a.getAttribute("task-id"));
+      if (b = a.nextSibling) {
+        bId = parseInt(b.getAttribute("task-id"));
+        query = [];
+        aData = data.getSchedules(aId, project.replace);
+        return bData = data.getSchedules(bId, project.replace);
+      }
+    });
+    properties = data.getProperties();
+    ref = {
+      status: properties.status,
+      level: properties.level
+    };
+    for (key in ref) {
+      property = ref[key];
+      strProperty = key.charAt(0).toUpperCase() + key.substr(1);
+      select = Dom.select(option, property, "selectSchedule" + strProperty, task[key]);
+      select.classList.add("selectSchedule" + strProperty + task[key]);
+      select.addEventListener("change", function() {
+        return data.setScheduleStatus(this);
+      });
+    }
+    wrap = Dom.create(item, "div");
+    wrap.classList.add("node");
+    switch (task.status) {
+      case 3:
+        op = ".5";
+        break;
+      case 4:
+        op = ".2";
+        break;
+      default:
+        op = "1";
+    }
+    wrap.style.opacity = op;
+    if (task.title.length > 8) {
+      str = task.title.substring(0, 8) + "...";
+    } else {
+      str = task.title;
+    }
+    text = Dom.create(wrap, "div", str);
+    text.classList.add("node__text");
+    Dom.create(text, "span", task.title);
+    text.addEventListener("mouseover", function() {
+      return this.appendChild(option);
+    });
+    text.addEventListener("mouseleave", function() {
+      return this.removeChild(option);
+    });
+    text.addEventListener("click", function() {});
+    list = Dom.create(item, "ol");
+    return list.classList.add("children");
+  };
+
+  Project.prototype.dragUp = function(evt, dragging) {
+    var c, childId, children, j, k, len, len1, parent, projectId, ref, results, to, toId;
+    childId = dragging.elem.getAttribute("task-id");
+    children = [childId];
+    ref = Dom.gets(".children__item", dragging.elem);
+    for (j = 0, len = ref.length; j < len; j++) {
+      c = ref[j];
+      children.push(parseInt(c.getAttribute("task-id")));
+    }
+    to = document.elementFromPoint(evt.pageX, evt.pageY);
+    if (to.classList.contains("node__text")) {
+      parent = to.parentNode.parentNode;
+      if (parent.classList.contains("mindmap")) {
+        toId = null;
+      } else if (parent.classList.contains("children__item")) {
+        toId = parent.getAttribute("task-id");
+      }
+      return data.getSchedules(childId, Project.mouse.setParent, parseInt(toId));
+    } else if (to.classList.contains("clickProjectSelector")) {
+      if (projectId = to.getAttribute("project-selector")) {
+        results = [];
+        for (k = 0, len1 = children.length; k < len1; k++) {
+          c = children[k];
+          query = [];
+          results.push(data.getSchedules(c, Project.mouse.setProject, [children, projectId]));
+        }
+        return results;
+      }
+    }
+  };
+
+  Project.prototype.replace = function(q) {
+    var tmp;
+    if (!query[0]) {
+      return query[0] = q;
+    } else {
+      query[1] = q;
+      tmp = query[1].order;
+      query[1].order = query[0].order;
+      query[0].order = tmp;
+      return data.setSchedules(query);
+    }
+  };
+
+  Project.mouse = {
+    setParent: function(q, id) {
+      query = [[]];
+      query[0] = q;
+      query[0].parent = id;
+      return data.setSchedules(query, {
+        index: "project",
+        key: q.project
+      }, project.setProject);
+    },
+    setProject: function(q, arr) {
+      q.project = parseInt(arr[1]);
+      query.push(q);
+      if (q.id === parseInt(arr[0])) {
+        q.parent = null;
+      }
+      if (query.length === arr[0].length) {
+        return data.setSchedules(query);
+      }
+    }
+  };
+
+  return Project;
 
 })();
 
@@ -1744,12 +2146,17 @@ View = (function() {
     form.content = Dom.label(form.base, "textarea", "内容");
     form.id = Dom.create(form.base, "input");
     form.id.setAttribute("type", "hidden");
-    Dom.button(form.base, "保存").classList.add("clickScheduleSubmit");
+    form.parent = Dom.create(form.base, "input");
+    form.parent.setAttribute("type", "hidden");
+    form.project = Dom.create(form.base, "input");
+    form.project.setAttribute("type", "hidden");
+    Dom.button(form.base, "作成").classList.add("clickScheduleSubmit");
     Dom.button(form.base, "戻る").classList.add("clickScheduleCancel");
+    Dom.button(form.base, "連続作成").classList.add("clickScheduleSubmitContinue");
   }
 
-  View.prototype.getForm = function(args) {
-    return form[args];
+  View.prototype.getForm = function() {
+    return form;
   };
 
   View.getId = function(elem) {
@@ -1848,13 +2255,13 @@ View = (function() {
           schedule.classList.add("id" + result.id, "scheduleTitle", "draggable");
           for (key in properties) {
             status = properties[key];
-            if (!result[key] || result[key] === 0) {
+            if (!result[key] || (result[key] === 0) || (isNaN(result[key]))) {
               result[key] = 1;
             }
             str = key.charAt(0).toUpperCase() + key.substr(1);
             schedule.classList.add("schedule" + str + result[key]);
           }
-        } else {
+        } else if (k === "year" || k === "month" || k === "someday") {
           View.drawSchedule(properties, result.date, result, Dom.get("." + k + "Task", tasks));
         }
       }
@@ -1863,36 +2270,24 @@ View = (function() {
   };
 
   View.drawSchedule = function(properties, date, result, elem) {
-    var i, j, key, len, property, propertySelect, scheduleItem, scheduleProperty, scheduleSect, stat, strProperty;
+    var key, property, ref, scheduleItem, scheduleProperty, scheduleSect, select, strProperty;
     if (result && result.date === date) {
       scheduleItem = Dom.create(elem, "li");
       scheduleSect = Dom.create(scheduleItem, "dl");
       scheduleSect.classList.add("id" + result.id);
       Dom.create(scheduleSect, "dt", result.title).classList.add("scheduleTitle", "clickScheduleTitle", "draggable");
       Dom.create(scheduleSect, "dd", result.content).classList.add("clickScheduleContent");
-      for (key in properties) {
-        property = properties[key];
-        if ((key === "status") || (key === "level")) {
-          if (!result[key] || result[key] === 0) {
-            result[key] = 1;
-          }
-          strProperty = key.charAt(0).toUpperCase() + key.substr(1);
-          scheduleItem.classList.add("schedule" + strProperty + result[key]);
-          scheduleProperty = Dom.create(scheduleSect, "dd");
-          propertySelect = Dom.create(scheduleProperty, "select");
-          propertySelect.classList.add("select", "selectSchedule" + strProperty + result[key]);
-          i = 0;
-          for (j = 0, len = property.length; j < len; j++) {
-            stat = property[j];
-            if (stat) {
-              Dom.create(propertySelect, "option", stat.name).classList.add("schedule" + strProperty + stat.id);
-              if (stat.id === result[key]) {
-                propertySelect.selectedIndex = i;
-              }
-              i++;
-            }
-          }
-        }
+      ref = {
+        status: properties.status,
+        level: properties.level
+      };
+      for (key in ref) {
+        property = ref[key];
+        strProperty = key.charAt(0).toUpperCase() + key.substr(1);
+        scheduleItem.classList.add("schedule" + strProperty + result[key]);
+        scheduleProperty = Dom.create(scheduleSect, "dd");
+        select = Dom.select(scheduleProperty, property, "selectSchedule" + strProperty, result[key]);
+        select.classList.add("selectSchedule" + strProperty + result[key]);
       }
       return Dom.create(scheduleSect, "dd", "削除").classList.add("clickScheduleDelete");
     }
@@ -1919,29 +2314,39 @@ View = (function() {
       form.base.style.display = null;
       item = null;
       try {
-        Dom.get(" body > ul > .keep > section").style.display = null;
+        Dom.get("body > ul > .keep > section").style.display = null;
       } catch (_error) {}
       return View.calendarHeightChange();
     },
     scheduleAdd: function(date) {
       form.base.style.display = "block";
       form.date.value = date;
-      Dom.get(document, " body > ul > .keep > section").item(0).style.display = "none";
-      return View.caluendarHeightChange();
+      try {
+        Dom.get("body > ul > .keep > section").style.display = "none";
+      } catch (_error) {}
+      View.calendarHeightChange();
+      return form.title.focus();
     },
     scheduleUpdate: function(i) {
+      var key, value;
       item = i;
       form.base.style.display = "block";
+      for (key in item) {
+        value = item[key];
+        try {
+          form[key].value = value;
+        } catch (_error) {}
+      }
       if (typeof item.date === "string") {
         form.date.value = item.date;
       } else {
         form.date.value = item.date.getFullYear() + "/" + (item.date.getMonth() + 1) + "/" + item.date.getDate();
       }
-      form.title.value = item.title;
-      form.content.value = item.content;
-      form.id.value = item.id;
-      Dom.get(" body > ul > .keep > section").style.display = "none";
-      return View.caluendarHeightChange();
+      try {
+        Dom.get("body > ul > .keep > section").style.display = "none";
+      } catch (_error) {}
+      View.calendarHeightChange();
+      return form.title.focus();
     }
   };
 

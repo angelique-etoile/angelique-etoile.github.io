@@ -37,6 +37,23 @@ Dom = (function() {
     return child;
   };
 
+  Dom.select = function(parent, array, classPrefix, selected) {
+    var i, item, j, len, select;
+    i = 0;
+    select = Dom.create(parent, "select");
+    for (j = 0, len = array.length; j < len; j++) {
+      item = array[j];
+      if (item) {
+        Dom.create(select, "option", item.name).classList.add(classPrefix + item.id);
+        if (item.id === selected) {
+          select.selectedIndex = i;
+        }
+        i++;
+      }
+    }
+    return select;
+  };
+
   Dom.input = function(parent, text, before) {
     var child, label;
     label = Dom.create(parent, "label", text);
@@ -162,11 +179,6 @@ apps = [
     libs: ["javascript/schedule/script.js"],
     style: ["stylesheet/reset.css", "stylesheet/common.css", "stylesheet/schedule.css"]
   }, {
-    name: "一覧",
-    "class": "Controller",
-    libs: ["javascript/mindmap/script.js"],
-    style: ["stylesheet/reset.css", "stylesheet/common.css", "stylesheet/mindmap.css"]
-  }, {
     name: "姓名判断",
     "class": "Controller",
     libs: ["http://192.168.0.16:8000/javascript/seimei/script.js"],
@@ -237,4 +249,4 @@ load = function(app) {
   return results;
 };
 
-plugins = ["PropertySetting", "FileInOut", "Holiday", "Rokusei"];
+plugins = ["PropertySetting", "FileInOut", "Project", "Holiday", "Rokusei"];
