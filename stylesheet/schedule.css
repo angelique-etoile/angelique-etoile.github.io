@@ -395,11 +395,12 @@ body .dragging .node .optionpanel {
 }
 body .mindmap {
   display: none;
-  position: fixed;
+  position: absolute;
   top: 2em;
   left: 0;
   right: 0;
   bottom: 0;
+  overflow: auto;
   z-index: 1;
   background: #ffd9eb;
   text-align: center;

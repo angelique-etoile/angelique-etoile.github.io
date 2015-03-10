@@ -1601,7 +1601,7 @@ Project = (function() {
       c = ref[j];
       children.push(parseInt(c.getAttribute("task-id")));
     }
-    to = document.elementFromPoint(evt.pageX, evt.pageY);
+    to = document.elementFromPoint(document.body.scrollLeft + evt.pageX, document.body.scrollTop + evt.pageY);
     if (to.classList.contains("node__text")) {
       parent = to.parentNode.parentNode;
       if (parent.classList.contains("mindmap")) {
