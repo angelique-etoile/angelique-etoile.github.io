@@ -155,7 +155,7 @@ Controller = (function() {
       return target.parentNode.parentNode.classList.remove("keep");
     },
     ScheduleSubmit: function(target, flgContinue) {
-      if (view.getForm().id.value) {
+      if (view.getForm().id.value !== "") {
         return data.getSchedules(view.getForm().id.value, this.ScheduleSubmitCallback, flgContinue);
       } else {
         return this.ScheduleSubmitCallback(null, flgContinue);
@@ -165,7 +165,7 @@ Controller = (function() {
       return this.ScheduleSubmit(target, true);
     },
     ScheduleSubmitCallback: function(old, flgContinue) {
-      var i, item, key, len, query, ref, ref1, value;
+      var i, item, key, len, property, query, ref, ref1, value;
       query = [];
       if (old) {
         query[0] = old;
@@ -176,16 +176,24 @@ Controller = (function() {
       ref = view.getForm();
       for (key in ref) {
         value = ref[key];
-        if (isNaN(parseInt(value.value))) {
+        if (value.value) {
           query[0][key] = value.value;
-        } else {
-          query[0][key] = parseInt(value.value);
-        }
-        if ((key === "id") && (value.value === "")) {
-          delete query[0]["id"];
+          for (property in data.getProperties()) {
+            if (key === property) {
+              query[0][key] = parseInt(value.value);
+            }
+          }
+          if (key === "id") {
+            if (value.value === "") {
+              delete query[0]["id"];
+            } else {
+              query[0]["id"] = parseInt(query[0]["id"]);
+            }
+          }
         }
       }
       query[0].last_update = new Date();
+      console.log(query[0]);
       data.setSchedules(query);
       view.form.close();
       if (flgContinue) {
@@ -655,7 +663,9 @@ Model = (function() {
             }
             for (key in q) {
               value = q[key];
-              data[key] = value;
+              if ((key !== "base") && (value !== "")) {
+                data[key] = value;
+              }
             }
             request = schedule.put(data);
             request.onerror = function(evt) {
@@ -2307,10 +2317,10 @@ View = (function() {
       return flg;
     },
     close: function() {
-      form.date.value = null;
-      form.title.value = null;
-      form.content.value = null;
-      form.id.value = null;
+      var key;
+      for (key in form) {
+        form[key].value = null;
+      }
       form.base.style.display = null;
       item = null;
       try {
