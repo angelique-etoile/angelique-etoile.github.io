@@ -193,7 +193,6 @@ Controller = (function() {
         }
       }
       query[0].last_update = new Date();
-      console.log(query[0]);
       data.setSchedules(query);
       view.form.close();
       if (flgContinue) {
